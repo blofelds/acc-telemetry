@@ -50,19 +50,21 @@ async def upload_video(
     finally:
         file.file.close()
             
-    # Check resolution
+    # Reject uploads that have no matching ROI profile for this resolution
     cap = cv2.VideoCapture(str(file_path))
     if cap.isOpened():
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         cap.release()
-        
-        if height > 720:
-            # Delete file if invalid
-            file_path.unlink()
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Video resolution too high ({height}p). Only 720p or lower is currently supported."
+
+        try:
+            processing.select_roi_profile(
+                processing.load_roi_config(),
+                video_height=height,
+                has_overlay=has_overlay
             )
+        except ValueError as e:
+            file_path.unlink()
+            raise HTTPException(status_code=400, detail=str(e))
     
     # Check if already processed (if re-uploading)
     if storage.video_exists(video_name):

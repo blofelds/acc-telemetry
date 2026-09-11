@@ -1,4 +1,82 @@
-# ROI configurations for different video sources
+ # ROI configurations for different video sources
+
+my_ps5_1080p:
+  # ROI coordinates for 1920x1080 video
+  # Horizontal throttle/brake bars in bottom-right corner
+
+  # Throttle
+  throttle:
+    x: 1758
+    y: 1008
+    width: 143
+    height: 15
+  
+  # Brake - horizontal bar below throttle (red/yellow/orange when ABS active)
+  # Height reduced to 11 to avoid capturing Force Feedback indicator below
+  brake:
+    x: 1758
+    y: 1027
+    width: 115
+    height: 15
+  
+  # Steering - white dot on horizontal scale above throttle bar
+  # Extended to frame edge to capture rightmost tick marks (x=1110 to x=1280)
+  steering:
+    x: 1707
+    y: 996
+    width: 198
+    height: 10
+  
+  # Lap number - red flag with white number in top-left corner
+    # Need to redo this With double digit laps
+    # Quite wide
+  lap_number:
+    x: 277
+    y: 114
+    width: 48
+    height: 38
+  
+  lap_number_training:
+    x: 277
+    y: 114
+    width: 23
+    height: 38
+  
+  # Last lap time - "LAST" lap time shown after completing a lap
+  # This is the actual completed lap time, captured at the start of the next lap
+    # tight
+  last_lap_time:
+    x: 107
+    y: 136
+    width: 88
+    height: 17
+  
+  # Speed - current speed in km/h displayed in bottom-right corner
+  # Located above throttle bar, inside the rev meter arc
+    # Wide box problem speeds; 217, 92, 78, 89
+    # 176,177, 137, 176 & 177 again
+  speed:
+    x: 1773
+    y: 935
+    width:  70
+    height: 37
+  
+  # Gear - current gear (1-6) displayed in bottom-right corner
+  # Located in the center of the rev meter arc
+  gear:
+    x: 1688
+    y: 890
+    width: 61
+    height: 95
+  
+  # Track map - circular minimap in top-left corner
+  # Shows white racing line with red dot indicating current position
+    # wide. could be a problem on other tracks
+  track_map:
+    x: 36
+    y: 277
+    width: 357
+    height: 313
 
 twitch_720p:
   # ROI coordinates for 1280x720 video

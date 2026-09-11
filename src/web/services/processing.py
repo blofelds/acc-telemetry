@@ -4,7 +4,7 @@ import yaml
 import time
 import cv2
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 from datetime import datetime
 import pandas as pd
 
@@ -31,11 +31,89 @@ class VideoProcessingService:
         with open(self.config_path, 'r') as f:
             return yaml.safe_load(f)
 
+    @staticmethod
+    def list_roi_profiles(full_config: dict) -> Dict[str, dict]:
+        """Return named ROI profiles from the YAML config.
+
+        Supports both the current multi-profile format (top-level keys like
+        ``twitch_720p``) and the older flat format (``throttle`` at the root).
+        """
+        if not full_config:
+            return {}
+
+        if 'throttle' in full_config:
+            return {'default': full_config}
+
+        return {
+            name: cfg
+            for name, cfg in full_config.items()
+            if isinstance(cfg, dict) and 'throttle' in cfg
+        }
+
+    def select_roi_profile(
+        self,
+        full_config: dict,
+        video_height: int,
+        has_overlay: bool = False,
+        profile_name: Optional[str] = None
+    ) -> Tuple[str, dict]:
+        """Choose an ROI profile from YAML using an explicit name or video height.
+
+        Profile names are expected to include a resolution suffix such as
+        ``720p`` or ``1080p`` (e.g. ``my_ps5_1080p``). When several profiles
+        match the same height, ``has_overlay`` prefers overlay-oriented names
+        (``go_setups`` / ``overlay``).
+
+        Returns:
+            Tuple of (profile_name, roi_config dict).
+
+        Raises:
+            ValueError: If no matching profile is found.
+        """
+        profiles = self.list_roi_profiles(full_config)
+        if not profiles:
+            raise ValueError("No ROI profiles found in roi_config.yaml")
+
+        if profile_name:
+            if profile_name not in profiles:
+                available = ", ".join(profiles)
+                raise ValueError(
+                    f"Unknown ROI profile '{profile_name}'. Available: {available}"
+                )
+            return profile_name, profiles[profile_name]
+
+        height_tag = f"{video_height}p"
+        matching = [name for name in profiles if height_tag in name]
+
+        if not matching:
+            available = ", ".join(profiles)
+            raise ValueError(
+                f"No ROI profile for {video_height}p video. "
+                f"Available profiles: {available}"
+            )
+
+        if has_overlay:
+            overlay_matches = [
+                name for name in matching
+                if 'go_setups' in name or 'overlay' in name
+            ]
+            if overlay_matches:
+                chosen = overlay_matches[0]
+                return chosen, profiles[chosen]
+
+        default_matches = [
+            name for name in matching
+            if 'go_setups' not in name and 'overlay' not in name
+        ]
+        chosen = (default_matches or matching)[0]
+        return chosen, profiles[chosen]
+
     async def process_video(
         self,
         video_path: str,
         video_name: str,
         has_overlay: bool = False,
+        profile_name: Optional[str] = None,
         progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> VideoMetadata:
         """
@@ -44,6 +122,8 @@ class VideoProcessingService:
         Args:
             video_path: Path to the video file
             video_name: Sanitized name for output directory
+            has_overlay: Prefer overlay-oriented 720p profiles (e.g. Go Setups)
+            profile_name: Explicit ROI profile name; otherwise chosen from video height
             progress_callback: Optional callback for progress updates (percentage, message)
 
         Returns:
@@ -58,16 +138,27 @@ class VideoProcessingService:
         if not video_path_obj.exists():
             raise FileNotFoundError(f"Video file not found: {video_path}")
 
-        # Load configuration
+        # Load configuration and pick a profile that matches this video
         full_config = self.load_roi_config()
-        
-        # Select profile based on overlay flag
-        profile_name = 'go_setups_720p' if has_overlay else 'twitch_720p'
-        roi_config = full_config.get(profile_name)
-        
-        if not roi_config:
-            # Fallback to first available if specific one not found
-            roi_config = list(full_config.values())[0]
+
+        probe = cv2.VideoCapture(video_path)
+        if not probe.isOpened():
+            raise ValueError("Could not open video file")
+        video_height = int(probe.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        probe.release()
+
+        selected_profile, roi_config = self.select_roi_profile(
+            full_config,
+            video_height=video_height,
+            has_overlay=has_overlay,
+            profile_name=profile_name
+        )
+
+        if progress_callback:
+            progress_callback(
+                2,
+                f"Using ROI profile '{selected_profile}' for {video_height}p video"
+            )
 
         # Initialize components
         processor = VideoProcessor(video_path, roi_config)
