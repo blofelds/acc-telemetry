@@ -1,0 +1,13 @@
+---
+description: Canonical GitHub remote. Never interact with KubaC701/acc-telemetry.
+alwaysApply: true
+---
+
+# Repository
+
+The only GitHub repository for this project is https://github.com/blofelds/acc-telemetry.
+
+- `origin` is `blofelds/acc-telemetry`. Push, pull, and open pull requests only there.
+- Do not fetch, pull, push, clone, or open issues or pull requests against `KubaC701/acc-telemetry`.
+- Do not add a remote that points at `KubaC701/acc-telemetry`.
+- If a command would contact that repository, stop and use `blofelds/acc-telemetry` instead.
