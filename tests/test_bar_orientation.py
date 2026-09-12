@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 from src.telemetry_extractor import TelemetryExtractor
+from src.video_processor import VideoProcessor
 
 
 def _green_from_bottom(height: int, width: int, filled_rows: int) -> np.ndarray:
@@ -66,6 +67,18 @@ class TestBarOrientation(unittest.TestCase):
         self.assertEqual(across['brake'], 0.0)
         self.assertEqual(up['brake'], 0.0)
         self.assertEqual(up['steering'], 0.0)
+
+
+    def test_missing_steering_roi_is_not_required(self):
+        profile = {
+            'throttle': {'x': 0, 'y': 0, 'width': 8, 'height': 80},
+            'brake': {'x': 10, 'y': 0, 'width': 8, 'height': 80},
+        }
+        processor = VideoProcessor('unused.mp4', profile)
+        frame = np.zeros((100, 40, 3), dtype=np.uint8)
+        rois = processor.frame_rois(frame)
+        self.assertEqual(set(rois), {'throttle', 'brake'})
+        self.assertEqual(rois['throttle'].shape, (80, 8, 3))
 
 
 if __name__ == '__main__':
