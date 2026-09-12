@@ -1,5 +1,8 @@
 # Racing Line Extraction - Multi-Frame Frequency Voting
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Overview
 
 This document explains the **multi-frame frequency voting** technique used to extract the racing line from ACC gameplay videos. This method successfully removes artifacts (red position dot, car cage lines, varying backgrounds) while preserving the complete racing line.
@@ -290,4 +293,4 @@ On a typical system:
 
 ---
 
-*Developed through extensive testing and iteration. See `extract_racing_line_final.py` for standalone implementation.*
+*Developed through extensive testing and iteration. See `src/position_tracker_v2.py` for the current implementation.*
