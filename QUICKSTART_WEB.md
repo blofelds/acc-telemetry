@@ -30,7 +30,7 @@ Interactive API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 1. Open [http://localhost:8000/docs](http://localhost:8000/docs)
 2. Use the video/job endpoints to submit processing jobs
 3. Fetch telemetry and lap comparison data from the telemetry endpoints
-4. Lap comparison is available via `POST /telemetry/compare` (see Swagger for request schema)
+4. Lap comparison JSON is available via `POST /api/telemetry/compare` (see Swagger for request schema). That endpoint returns lap arrays, not the Plotly HTML from `plot_position_based_comparison()`.
 
 ## CLI Alternative (Primary Workflow)
 

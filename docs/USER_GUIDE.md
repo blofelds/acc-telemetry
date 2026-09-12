@@ -102,7 +102,7 @@ df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
 viz.plot_position_based_comparison(df)
 ```
 
-Or use the web API `POST /telemetry/compare` when running `python run_server.py` (see [QUICKSTART_WEB.md](../QUICKSTART_WEB.md)).
+Or use the web API `POST /api/telemetry/compare` when running `python run_server.py` (returns JSON lap arrays; see [QUICKSTART_WEB.md](../QUICKSTART_WEB.md)). For the Plotly HTML overlay, call `plot_position_based_comparison()` as shown above.
 
 ### The Visualization
 

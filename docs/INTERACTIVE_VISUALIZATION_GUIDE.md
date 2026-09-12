@@ -65,7 +65,7 @@ viz.plot_position_based_comparison(df)
 - Interactive zoom to compare braking points
 - Hover to see exact differences
 
-> **Note:** The former standalone script `compare_laps.py` has been removed. Use the methods above (or the web API).
+> **Note:** The former standalone script `compare_laps.py` has been removed. Use the methods above for HTML. The web API `POST /api/telemetry/compare` returns JSON lap arrays, not those HTML files.
 
 ---
 
