@@ -3,6 +3,7 @@
 import unittest
 
 import numpy as np
+import yaml
 
 from src.telemetry_extractor import TelemetryExtractor
 from src.video_processor import VideoProcessor
@@ -79,6 +80,21 @@ class TestBarOrientation(unittest.TestCase):
         rois = processor.frame_rois(frame)
         self.assertEqual(set(rois), {'throttle', 'brake'})
         self.assertEqual(rois['throttle'].shape, (80, 8, 3))
+
+
+    def test_ac_profile_uses_vertical_bars_and_omits_steering(self):
+        with open('config/roi_config.yaml') as config_file:
+            profiles = yaml.safe_load(config_file)
+
+        ac = profiles['assetto_corsa_1080p']
+        self.assertEqual(ac['throttle']['orientation'], 'vertical')
+        self.assertEqual(ac['brake']['orientation'], 'vertical')
+        self.assertNotIn('steering', ac)
+        self.assertNotIn('track_map', ac)
+
+        acc = profiles['my_ps5_1080p']
+        self.assertEqual(acc['throttle']['orientation'], 'horizontal')
+        self.assertIn('steering', acc)
 
 
 if __name__ == '__main__':

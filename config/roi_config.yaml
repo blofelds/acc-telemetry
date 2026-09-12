@@ -4,12 +4,15 @@ my_ps5_1080p:
   # ROI coordinates for 1920x1080 video
   # Horizontal throttle/brake bars in bottom-right corner
 
-  # Throttle
+  # Throttle - horizontal bar, fills left to right
   throttle:
     x: 1758
     y: 1008
     width: 143
     height: 15
+    # Fill direction. ACC bars grow left to right. A missing key is
+    # also treated as horizontal.
+    orientation: horizontal
   
   # Brake - horizontal bar below throttle (red/yellow/orange when ABS active)
   # Height reduced to 11 to avoid capturing Force Feedback indicator below
@@ -18,6 +21,7 @@ my_ps5_1080p:
     y: 1027
     width: 115
     height: 15
+    orientation: horizontal
   
   # Steering - white dot on horizontal scale above throttle bar
   # Extended to frame edge to capture rightmost tick marks (x=1110 to x=1280)
@@ -79,35 +83,29 @@ my_ps5_1080p:
     height: 313
 
 assetto_corsa_1080p:
-  # ROI coordinates for 1920x1080 video
-  # Horizontal throttle/brake bars in bottom-right corner
+  # Assetto Corsa (original), 1920x1080. Select this profile by name.
+  # It is not the default 1080p profile: that HUD is a different game.
+  # Pedal bars are thin vertical strips that fill from the bottom.
+  # No on-screen steering indicator or circular minimap, so those ROIs
+  # are omitted rather than copied from an ACC profile.
 
-  # Throttle
+  # Throttle - vertical green bar, fills bottom to top
   throttle:
     x: 1582
     y: 910
     width: 8
     height: 80
-  
-  # Brake - horizontal bar below throttle (red/yellow/orange when ABS active)
-  # Height reduced to 11 to avoid capturing Force Feedback indicator below
+    orientation: vertical
+
+  # Brake - vertical red bar left of throttle, fills bottom to top
   brake:
     x: 1560
     y: 910
     width: 8
     height: 80
+    orientation: vertical
   
-  # Steering - white dot on horizontal scale above throttle bar
-  # Extended to frame edge to capture rightmost tick marks (x=1110 to x=1280)
-  steering:
-    x: 1707
-    y: 996
-    width: 198
-    height: 10
-  
-  # Lap number - red flag with white number in top-left corner
-    # Only up to double digit laps
-    # Quite wide
+  # Lap count in the left-side timing panel
   lap_number:
     x: 134
     y: 245
@@ -120,42 +118,26 @@ assetto_corsa_1080p:
     width: 18
     height: 21
   
-  # Last lap time - "LAST" lap time shown after completing a lap
-  # This is the actual completed lap time, captured at the start of the next lap
-    # tight
+  # Completed lap time in the left-side timing panel
   last_lap_time:
     x: 96
     y: 426
     width: 110
     height: 21
   
-  # Speed - current speed in km/h displayed in bottom-right corner
-  # Located above throttle bar, inside the rev meter arc
-    # Wide box problem speeds; 217, 92, 78, 89
-    # 176,177, 137, 176 & 177 again
+  # Speed - km/h digits beside the pedal bars
   speed:
     x: 1649
     y: 925
-    width: 51
+    width: 52
     height: 22
   
-  # Gear - current gear (1-6) displayed in bottom-right corner
-  # Located in the center of the rev meter arc
+  # Gear - large digit to the right of the speed readout
   gear:
     x: 1711
     y: 888
     width: 73
     height: 73
-  
-  # Track map - circular minimap in top-left corner
-  # Shows white racing line with red dot indicating current position
-    # wide. could be a problem on other tracks
-  track_map:
-    x: 36
-    y: 277
-    width: 357
-    height: 313
-######
 
 twitch_720p:
   # ROI coordinates for 1280x720 video
@@ -167,6 +149,7 @@ twitch_720p:
     y: 670
     width: 102
     height: 14
+    orientation: horizontal
   
   # Brake - horizontal bar below throttle (red/yellow/orange when ABS active)
   # Height reduced to 11 to avoid capturing Force Feedback indicator below
@@ -175,6 +158,7 @@ twitch_720p:
     y: 683
     width: 102
     height: 12
+    orientation: horizontal
   
   # Steering - white dot on horizontal scale above throttle bar
   # Extended to frame edge to capture rightmost tick marks (x=1110 to x=1280)
@@ -238,6 +222,7 @@ go_setups_720p:
     y: 599
     width: 87
     height: 10
+    orientation: horizontal
   
   # Brake - horizontal bar below throttle (red/yellow/orange when ABS active)
   brake:
@@ -245,6 +230,7 @@ go_setups_720p:
     y: 609
     width: 87
     height: 10
+    orientation: horizontal
   
   # Steering - white dot on horizontal scale above throttle bar
   steering:
