@@ -14,12 +14,14 @@ my_ps5_1080p:
     y: 1008        # Top edge position (pixels from top)
     width: 143     # ROI width in pixels
     height: 15     # ROI height in pixels
+    orientation: horizontal  # fill left to right; use vertical for bottom-to-top bars
 
   brake:
     x: 1758
     y: 1027
     width: 115
     height: 15
+    orientation: horizontal
 
 twitch_720p:
   throttle:
@@ -29,7 +31,14 @@ twitch_720p:
     height: 14
 ```
 
-`main.py` prompts for a profile. The web API selects one from video height (`720p` / `1080p` in the profile name).
+`main.py` prompts for a profile. The web API selects one from video height (`720p` / `1080p` in the profile name). `assetto_corsa_1080p` is not chosen from height alone; pass that name explicitly. It is a different game HUD.
+
+Each throttle and brake ROI may set `orientation`:
+
+- `horizontal` (default): bar fills left to right. ACC profiles use this.
+- `vertical`: bar fills from the bottom. Assetto Corsa original pedal bars use this.
+
+Omit the key and the extractor treats the bar as horizontal, so older ACC profiles still work.
 
 ## Resolution Dependency
 Coordinates are **not** a single 720p layout. Use a profile that matches the video (for example `my_ps5_1080p` or `twitch_720p`).
@@ -77,9 +86,9 @@ If the default coordinates don't work for your video:
 ## Troubleshooting ROI Issues
 
 ### Symptom: All values are 0% or 100%
-**Cause**: ROI is not capturing the correct UI element
+**Cause**: ROI is not capturing the correct UI element, or the bar fills the other way
 
-**Solution**: Wrong profile or wrong coordinates. Re-extract a test frame and verify positions.
+**Solution**: Wrong profile or wrong coordinates. Re-extract a test frame and verify positions. If the box is on the bar but values are only 0% and 100%, check `orientation`. A vertical bar measured as `horizontal` reports 100% as soon as any fill is present, because each colored row spans the full (very small) width.
 
 ### Symptom: Values fluctuate wildly
 **Cause**: ROI is too large and capturing neighboring elements
