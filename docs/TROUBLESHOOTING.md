@@ -6,7 +6,7 @@ This document consolidates solutions to common issues, bug fixes that were imple
 
 | Symptom | Likely Cause | Quick Fix |
 |---------|--------------|-----------|
-| All values 0% or 100% | ROI coordinates wrong | Check video resolution, adjust config |
+| All values 0% or 100% | ROI coordinates wrong, or bar orientation wrong | Check the profile, and `orientation` (`horizontal` vs `vertical`) |
 | No lap numbers detected | ROI doesn't capture lap indicator | Verify lap_number ROI coordinates |
 | Lap numbers oscillating | (Fixed) Temporal smoothing issue | Update to latest version |
 | False throttle during braking | (Fixed) Pixel threshold too low | Update to latest version |
@@ -50,6 +50,19 @@ python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); ret,f=cap.
    - Locate HUD elements (throttle bar bottom-right, lap number top-left)
    - Measure x, y, width, height for each element
    - Update (or add) a named profile in `config/roi_config.yaml`
+
+### Problem: Vertical bars read as 0% or 100%
+
+**Symptoms:**
+- The ROI box is on the pedal bar, and the crop looks correct
+- Throttle or brake is only 0% or 100%, with no values in between
+- Non-zero readings are coarse steps (for an 8 px wide bar: 12.5%, 25%, 50%, …)
+
+**Root Cause:**
+The bar fills bottom to top, but the profile does not set `orientation: vertical`. Horizontal measurement divides colored pixels by the bar **width**. On a thin vertical bar, one colored row is already 100%.
+
+**Solution:**
+Set `orientation: vertical` on the throttle and brake entries. Select `assetto_corsa_1080p` for Assetto Corsa original. Do not use an ACC profile for that HUD.
 
 ## Lap Detection Issues
 
