@@ -693,11 +693,12 @@ The project uses manual testing with real gameplay footage:
 
 ### Test Scripts
 
-Available test utilities:
+Available tests in `tests/`:
 
-- `test_lap_stability.py` - Detects lap oscillations
-- `test_position_tracking.py` - Validates position extraction
-- `test_kalman_filtering.py` - Historical, tests Kalman filter (deprecated)
+- `tests/test_position_tracker_v2.py` - Position tracker behavior
+- `tests/test_position_smoothing.py` - Position smoothing
+
+Historical standalone scripts (`test_lap_stability.py`, `test_position_tracking.py`, `test_kalman_filtering.py`) were removed from the repo.
 
 ### Validation Checklist
 
