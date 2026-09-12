@@ -12,7 +12,7 @@ This document consolidates solutions to common issues, bug fixes that were imple
 | False throttle during braking | (Fixed) Pixel threshold too low | Update to latest version |
 | Position jumps erratically | Red dot detection failing | Check track_map ROI, verify minimap visible |
 | Slow processing | Using pytesseract | Install tesserocr for 29x speedup |
-| Video file not found | Wrong path/name | Check VIDEO_PATH in main.py |
+| Video file not found | Wrong path/name | Place `.mp4` files in `videos/` and select in `main.py` |
 
 ## Resolution and ROI Issues
 
@@ -116,11 +116,7 @@ else:
 
 **Key Lesson:** Temporal filtering is essential for computer vision. Single-frame detections are noisy - requiring consistency across multiple frames dramatically improves robustness.
 
-**Test Script:**
-```bash
-python test_lap_stability.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
-```
-Expected output: "✅ PASSED: No lap oscillations detected!"
+**Test approach:** Inspect lap transitions in the exported CSV (or write a small script that flags where `lap_number` decreases). The former standalone `test_lap_stability.py` script is no longer in the repo.
 
 ### Historical Bug Fix: Lap 0 Rejection and Large Jumps (Solved)
 
@@ -265,16 +261,10 @@ The 3 detected throttle blips during braking are **legitimate**:
 **Possible Causes & Solutions:**
 
 **1. Track path extraction failed:**
-```bash
-# Run test to check path extraction
-python test_position_tracking.py
-```
-Look for: "✅ Successfully extracted racing line with X points"
-
-If extraction fails:
-- Verify `track_map` ROI in `config/roi_config.yaml` captures minimap correctly
-- Check if white racing line is visible in debug images: `debug/position_tracking/map_sample_frameXXXX.png`
-- Ensure minimap is visible and not hidden by overlays
+- Verify `track_map` ROI in `config/roi_config.yaml` captures the minimap
+- Check debug images under `debug/` if you save map samples during development
+- Ensure the minimap is visible and not hidden by overlays
+- Run unit tests: `python tests/test_position_tracker_v2.py`
 
 **2. HSV color ranges need adjustment:**
 
@@ -310,16 +300,10 @@ tracker.extract_track_path(map_rois, frequency_threshold=0.40)  # Lower from 0.4
 **Root Causes & Solutions:**
 
 **1. Red dot detection unreliable:**
-```bash
-# Check debug images
-python test_position_tracking.py
-```
-Look at `position_frameXXXX.png` - is red dot detected correctly?
-
-If red dot is not found:
-- Check if minimap is visible and not obscured
-- Verify red dot is actually red (not changed by game HUD settings)
-- Adjust HSV ranges for red detection if needed
+- Save minimap ROI crops to `debug/` and inspect whether the red dot is visible
+- Check if the minimap is obscured
+- Adjust HSV ranges for red detection in `src/position_tracker_v2.py` if needed
+- Run: `python tests/test_position_tracker_v2.py`
 
 **2. Path is incomplete (gaps in racing line):**
 
@@ -516,7 +500,7 @@ Very long videos (10+ minutes) have 18,000+ data points, which can stress browse
 1. **Trim video to specific laps:**
 ```bash
 # Extract 2-minute section starting at 1:30
-ffmpeg -i input_video.mp4 -ss 00:01:30 -t 00:02:00 output.mp4
+ffmpeg -i videos/full_lap.mp4 -ss 00:01:30 -t 00:02:00 videos/clip.mp4
 ```
 
 2. **Use faster browser:**

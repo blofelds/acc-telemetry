@@ -203,9 +203,11 @@ Your throttle bar at (1170, 670) is near the bottom-right corner.
 # 1. Activate the Python environment
 source venv/bin/activate
 
-# 2. Place your ACC video as input_video.mp4
+# 2. Place your ACC video in videos/
+mkdir -p videos
+cp /path/to/acc_video.mp4 videos/
 
-# 3. Run the extractor
+# 3. Run the extractor (select video + ROI profile)
 python main.py
 
 # 4. Check data/output/ for results
@@ -213,7 +215,7 @@ python main.py
 
 ### Output Files:
 - `telemetry_YYYYMMDD_HHMMSS.csv` - Raw data
-- `telemetry_YYYYMMDD_HHMMSS.png` - Visual graph
+- `telemetry_interactive_YYYYMMDD_HHMMSS.html` - Interactive Plotly graph
 
 ---
 
@@ -222,16 +224,21 @@ python main.py
 ```
 acc-telemetry/
 ├── src/
-│   ├── video_processor.py      # Opens video, extracts ROI regions
-│   ├── telemetry_extractor.py  # Analyzes colors, measures bars
-│   └── visualizer.py            # Creates graphs and CSV
+│   ├── video_processor.py           # Opens video, extracts ROI regions
+│   ├── telemetry_extractor.py       # Analyzes colors, measures bars
+│   ├── lap_detector.py              # Lap / speed / gear detection
+│   ├── position_tracker_v2.py       # Minimap position tracking
+│   ├── interactive_visualizer.py    # CSV + interactive HTML
+│   └── web/                         # Optional FastAPI backend
 ├── config/
-│   └── roi_config.yaml          # ROI coordinates (YOU CAN EDIT THIS)
+│   └── roi_config.yaml              # Named ROI profiles
+├── videos/                          # Input .mp4 files
 ├── data/
-│   └── output/                  # Your results go here
-├── main.py                      # Runs everything
-├── requirements.txt             # Python libraries needed
-└── README.md                    # User guide
+│   └── output/                      # Results
+├── main.py                          # CLI entrypoint
+├── run_server.py                    # Web API entrypoint
+├── requirements.txt
+└── README.md
 ```
 
 ### What Each File Does:
@@ -249,10 +256,10 @@ acc-telemetry/
 - Counts pixels to calculate percentages
 - Returns throttle/brake/steering values
 
-**visualizer.py**
+**interactive_visualizer.py**
 - Takes all the telemetry data
 - Creates a pandas DataFrame (table)
-- Generates the 3-panel graph
+- Generates interactive Plotly HTML graphs
 - Exports CSV file
 
 **main.py**
@@ -337,11 +344,11 @@ We need to detect both states, so we:
 3. Run again
 
 ### Problem: "Video file not found"
-**Cause**: Video isn't named `input_video.mp4` or isn't in project root
+**Cause**: No `.mp4` files in `videos/`, or the path you selected is wrong
 
 **Solution**:
-- Rename your video to `input_video.mp4`, OR
-- Edit `VIDEO_PATH` in `main.py`
+- Place your video under `videos/` and re-run `python main.py`
+- Select the correct file when prompted
 
 ### Problem: "Processing is very slow"
 **Cause**: Normal - video processing is CPU-intensive
