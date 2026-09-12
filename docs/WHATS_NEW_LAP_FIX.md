@@ -1,5 +1,8 @@
 # What's New - Lap Detection Bug Fix
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## 🐛 Bug Fixed: Lap Number Oscillations
 
 ### Problem
@@ -44,16 +47,16 @@ Implemented **temporal smoothing with majority voting**:
    - Before/after comparisons
    - Explanation of the fix
 
-4. **`test_lap_stability.py`**
+4. **~~`test_lap_stability.py`~~** (removed)
    - Automated test to detect lap oscillations
-   - Run: `python test_lap_stability.py <telemetry.csv>`
+   - Run: `# test_lap_stability.py removed — inspect lap_number column in the CSV instead`
 
 ## 🧪 Testing
 
 Run the stability test on any telemetry CSV:
 
 ```bash
-python test_lap_stability.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+# test_lap_stability.py removed — inspect lap_number column in the CSV instead
 ```
 
 **Expected output (after fix):**

@@ -1,20 +1,37 @@
 # Detailed Telemetry Analysis Guide
 
-This guide explains how to use the detailed visualization tools to analyze your ACC driving performance in depth.
+> **Historical / deprecated:** The standalone scripts `generate_detailed_analysis.py` and `src/detailed_visualizer.py` are **no longer in this repository**. Prefer interactive HTML from `python main.py` and methods on `InteractiveTelemetryVisualizer` (see [INTERACTIVE_VISUALIZATION_GUIDE.md](INTERACTIVE_VISUALIZATION_GUIDE.md) and [USER_GUIDE.md](USER_GUIDE.md)). This document is preserved for historical context about the old static PNG analysis workflow.
 
-## Quick Start
+This guide explains how the (removed) detailed visualization tools analyzed ACC driving performance.
+
+## Quick Start (current workflow)
 
 ```bash
-# 1. First, extract telemetry from your video
+# Extract telemetry → interactive HTML + CSV
 python main.py
-
-# 2. Generate detailed analysis graphs
-python generate_detailed_analysis.py
 ```
 
-## Generated Visualizations
+For position-based comparison:
 
-The detailed analysis generates **4 high-resolution PNG files** (300 DPI) optimized for zooming and printing:
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
+```
+
+## Former workflow (removed)
+
+```bash
+# These commands no longer work — scripts were removed
+# python generate_detailed_analysis.py
+```
+
+## Generated Visualizations (historical)
+
+The detailed analysis previously generated **4 high-resolution PNG files** (300 DPI):
 
 ### 1. **Comprehensive Overview** (`telemetry_detailed_*.png`)
 **What it shows**: 6-panel layout with multiple detail levels
@@ -117,7 +134,7 @@ The detailed analysis generates **4 high-resolution PNG files** (300 DPI) optimi
 
 ### Workflow 2: Compare Laps
 1. Run `main.py` on multiple lap videos (rename the input video each time)
-2. Run `generate_detailed_analysis.py` after each extraction
+2. (Historical) Previously ran `generate_detailed_analysis.py` — use interactive HTML instead
 3. Open the same type of graph (e.g., braking zones) from each lap side-by-side
 4. Compare:
    - Brake point timing
@@ -208,7 +225,7 @@ If you have telemetry from a faster driver:
 ## Customization
 
 ### Change Number of Sections
-Edit `generate_detailed_analysis.py`:
+Edit settings (historical — script removed):
 
 ```python
 # Default: 6 sections
@@ -253,7 +270,7 @@ visualizer.plot_detailed_overview(df_section, filename='section_10_20_analysis.p
 
 ### Resolution
 - **Standard graphs** (from `main.py`): 150 DPI
-- **Detailed graphs** (from `generate_detailed_analysis.py`): 300 DPI
+- **Detailed graphs** (historical `generate_detailed_analysis.py`): 300 DPI
 
 ### File Sizes
 Detailed visualizations are larger due to high resolution:
@@ -281,7 +298,7 @@ Detailed visualizations are larger due to high resolution:
 - A: Your CSV file is empty or corrupted. Re-run `main.py` to regenerate telemetry data.
 
 **Q: I want even more detail**
-- A: Increase the DPI in `detailed_visualizer.py` (change `dpi=300` to `dpi=600`), but file sizes will increase significantly.
+- A: Increase the DPI in the (removed) `detailed_visualizer.py` (change `dpi=300` to `dpi=600`), but file sizes will increase significantly.
 
 **Q: Can I export to other formats?**
 - A: Yes! Modify the file extension in the scripts:

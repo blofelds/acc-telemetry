@@ -1,5 +1,8 @@
 # What's New: Position-Based Lap Comparison
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Summary
 
 Added **position-based lap comparison** - the gold standard for racing telemetry analysis. This feature allows you to compare laps by track position (not time) to see exactly where you gain or lose time around the track.
@@ -8,7 +11,7 @@ Added **position-based lap comparison** - the gold standard for racing telemetry
 
 ### New Files
 
-1. **`compare_laps_by_position.py`** - Standalone tool to generate position-based comparisons
+1. **~~`compare_laps_by_position.py`~~** (removed) — use `InteractiveTelemetryVisualizer.plot_position_based_comparison()`
    - Loads telemetry CSV with multiple laps
    - Validates data has position information
    - Generates interactive HTML comparison
@@ -34,7 +37,7 @@ Added **position-based lap comparison** - the gold standard for racing telemetry
    - Updated project structure
    - Updated roadmap (marked time delta analysis as complete)
 
-3. **`compare_laps.py`** - Updated documentation
+3. **~~`compare_laps.py`~~** (removed) — documentation updated to point at visualizer APIs
    - Clarified it's for time-based comparison
    - Added pointer to position-based tool
 
@@ -88,7 +91,7 @@ Aligns laps by track position, not time:
 python main.py
 
 # 2. Generate position-based comparison
-python compare_laps_by_position.py data/output/telemetry_20251024_163152.csv
+# (removed) use InteractiveTelemetryVisualizer.plot_position_based_comparison(df)
 ```
 
 Output:
@@ -166,7 +169,7 @@ To generate this data:
 
 ### 1. Generate Comparison
 ```bash
-python compare_laps_by_position.py data/output/telemetry.csv
+# (removed) use InteractiveTelemetryVisualizer.plot_position_based_comparison(df)
 ```
 
 ### 2. Open HTML in Browser

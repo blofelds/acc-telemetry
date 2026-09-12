@@ -1,5 +1,8 @@
 # Lap Detection Bug Fix - Oscillation at Lap 10 and 20
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Problem Description
 
 The lap number detection was oscillating between consecutive values during laps 10/11 and 20/21, causing visualization artifacts where lap markers would appear multiple times in rapid succession.
