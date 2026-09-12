@@ -1,5 +1,8 @@
 # Kalman Filtering for Position Tracking - [DEPRECATED]
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## ⚠️ IMPORTANT: This Approach Was Abandoned
 
 **Status:** This document describes an experimental Kalman filtering implementation that was **later replaced** with a simpler approach.
@@ -250,7 +253,7 @@ print(f"Outliers rejected: {debug_info['outlier_count']}")
 
 Run the test script to verify Kalman filtering:
 ```bash
-python test_kalman_filtering.py
+# test_kalman_filtering.py removed — see tests/test_position_tracker_v2.py
 ```
 
 This simulates position tracking with a known outlier and visualizes the filtering result.
