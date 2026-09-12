@@ -4,16 +4,18 @@ alwaysApply: true
 
 # ACC Telemetry Extractor - Project Structure
 
-This is a Python computer vision tool that extracts telemetry data (throttle, brake, steering) from Assetto Corsa Competizione gameplay videos by analyzing the on-screen HUD elements.
+This is a Python computer vision tool that extracts telemetry data (throttle, brake, steering, speed, gear, lap, position) from Assetto Corsa Competizione gameplay videos by analyzing on-screen HUD elements.
 
 ## Project Architecture
 
 ### Entry Point
 [main.py](mdc:main.py) - Main orchestrator that:
-- Loads ROI configuration from [roi_config.yaml](mdc:config/roi_config.yaml)
-- Initializes VideoProcessor, TelemetryExtractor, and TelemetryVisualizer
+- Interactively selects a video from `videos/` and an ROI profile from [roi_config.yaml](mdc:config/roi_config.yaml)
+- Initializes VideoProcessor, TelemetryExtractor, LapDetector, PositionTrackerV2, and InteractiveTelemetryVisualizer
 - Processes video frame-by-frame
-- Exports CSV and generates visualization graphs
+- Exports CSV and interactive HTML visualizations
+
+Optional web API: [run_server.py](mdc:run_server.py) → [src/web/](mdc:src/web/)
 
 ### Core Modules (src/)
 
@@ -30,52 +32,48 @@ This is a Python computer vision tool that extracts telemetry data (throttle, br
    - Supports both horizontal and vertical bar orientations
    - Handles color changes when TC/ABS activate (green→yellow, red→orange)
 
-3. **[visualizer.py](mdc:src/visualizer.py)** - TelemetryVisualizer class
+3. **[lap_detector.py](mdc:src/lap_detector.py)** - LapDetector class
+   - Template matching / OCR for lap numbers, speed, gear, lap times
+
+4. **[position_tracker_v2.py](mdc:src/position_tracker_v2.py)** - PositionTrackerV2 class
+   - Minimap-based track position (0-100%)
+
+5. **[interactive_visualizer.py](mdc:src/interactive_visualizer.py)** - InteractiveTelemetryVisualizer class
    - Creates pandas DataFrames from raw telemetry data
-   - Exports CSV files with frame, time, throttle, brake, steering columns
-   - Generates 3-panel matplotlib graphs (throttle, brake, steering over time)
-   - Provides summary statistics
+   - Exports CSV files
+   - Generates interactive Plotly HTML graphs
+   - Lap comparison: `plot_lap_comparison()`, `plot_position_based_comparison()`
+
+6. **[template_matcher.py](mdc:src/template_matcher.py)** - Digit template matching
+7. **[web/](mdc:src/web/)** - FastAPI backend (jobs, videos, telemetry APIs)
 
 ### Configuration
-- **[roi_config.yaml](mdc:config/roi_config.yaml)** - ROI coordinates (x, y, width, height) for:
-  - `throttle`: Horizontal green bar position
-  - `brake`: Horizontal red bar position
-  - `steering`: Steering indicator position
-  - **Important**: Coordinates are resolution-dependent (current: 1280×720)
+- **[roi_config.yaml](mdc:config/roi_config.yaml)** - Named ROI profiles with coordinates (x, y, width, height) for:
+   - `throttle`, `brake`, `steering`, `speed`, `gear`, `lap_number`, `track_map`, etc.
+   - **Important**: Coordinates are resolution-dependent; select the matching profile in `main.py`
 
 ### Output Directory
 - `data/output/` - Generated files:
-  - `telemetry_YYYYMMDD_HHMMSS.csv` - Raw frame-by-frame data
-  - `telemetry_YYYYMMDD_HHMMSS.png` - Visualization graph
+   - `telemetry_YYYYMMDD_HHMMSS.csv` - Raw frame-by-frame data
+   - `telemetry_interactive_YYYYMMDD_HHMMSS.html` - Interactive Plotly graph
 
 ### Debug Directory
 - `debug/` - Temporary debugging workspace (git-ignored)
-  - **Purpose**: Store temporary files, test images, debug scripts during development
-  - **Workflow**: 
-    1. Agent creates task-specific subfolder (e.g., `debug/roi_calibration/`, `debug/color_analysis/`)
-    2. Store temporary debug artifacts (frame captures, test outputs, analysis scripts)
-    3. After task completion, the task-specific subfolder can be safely deleted
-  - **Example structure**:
-    ```
-    debug/
-      ├── roi_calibration/        # Temporary: ROI finding task
-      │   ├── frame_samples/
-      │   └── test_coordinates.yaml
-      ├── color_detection_test/   # Temporary: Color threshold tuning
-      │   ├── hsv_ranges.png
-      │   └── mask_test.py
-    ```
-  - **Important**: Contents are temporary and should not be committed to version control
+   - **Purpose**: Store temporary files, test images, debug scripts during development
+   - **Workflow**: 
+     1. Agent creates task-specific subfolder (e.g., `debug/roi_calibration/`, `debug/color_analysis/`)
+     2. Store temporary debug artifacts (frame captures, test outputs, analysis scripts)
+     3. After task completion, the task-specific subfolder can be safely deleted
+   - **Important**: Contents are temporary and should not be committed to version control
 
 ### Input Video
-- Expected location: `input_video.mp4` in project root
-- Can be configured via `VIDEO_PATH` variable in [main.py](mdc:main.py)
+- Place `.mp4` files in `videos/`; `main.py` prompts for selection
 
 ## Key Technologies
 - **OpenCV** (cv2): Video processing and computer vision
 - **NumPy**: Array operations and image manipulation
 - **Pandas**: Data structuring and CSV export
-- **Matplotlib**: Telemetry visualization
+- **Plotly**: Interactive telemetry visualization
 - **PyYAML**: Configuration file parsing
 
 ## Dependencies
