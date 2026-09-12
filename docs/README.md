@@ -221,6 +221,9 @@ When updating documentation:
 
 **September 2026** - Accuracy pass against current code
 - Lap numbers documented as tesserocr; template matching guides marked historical
+- Named ROI profiles instead of a single 720p layout
+- Web compare path is `POST /api/telemetry/compare` (JSON, not HTML)
+- `main.py` outputs CSV + interactive HTML only; position HTML is a separate visualizer call
 
 **September 2025** - Removed stale file references
 - Dropped docs for deleted CLI helpers (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, etc.)

@@ -573,16 +573,19 @@ twitch_720p:
    ├─> LapDetector extracts speed/gear (OCR)
    └─> Data appended to list
 
-3. After all frames processed:
+3. After all frames processed (`main.py`):
    ├─> Convert list to pandas DataFrame
    ├─> Export to CSV
-   ├─> Generate interactive HTML visualization
-   └─> Optionally: position-based comparison
+   └─> Generate interactive HTML visualization (`plot_telemetry`)
 
-4. Output files saved to data/output/:
+4. Output files from `main.py` in data/output/:
    ├─> telemetry_YYYYMMDD_HHMMSS.csv
-   ├─> telemetry_interactive_YYYYMMDD_HHMMSS.html
-   └─> lap_comparison_position_YYYYMMDD_HHMMSS.html
+   └─> telemetry_interactive_YYYYMMDD_HHMMSS.html
+
+   Position-based HTML (`lap_comparison_position_*.html`) is **not**
+   written by `main.py`. Call
+   `InteractiveTelemetryVisualizer.plot_position_based_comparison()`
+   on the CSV after extraction.
 ```
 
 ### Performance Characteristics

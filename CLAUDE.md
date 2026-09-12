@@ -163,9 +163,9 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
 
 ### Output Directory
 - `data/output/` - Generated files:
-  - `telemetry_YYYYMMDD_HHMMSS.csv` - Frame-by-frame raw data
-  - `telemetry_interactive_YYYYMMDD_HHMMSS.html` - Interactive Plotly graphs
-  - `lap_comparison_position_YYYYMMDD_HHMMSS.html` - Position-based comparison
+  - `telemetry_YYYYMMDD_HHMMSS.csv` - Frame-by-frame raw data (`main.py`)
+  - `telemetry_interactive_YYYYMMDD_HHMMSS.html` - Interactive Plotly graphs (`main.py`)
+  - `lap_comparison_position_YYYYMMDD_HHMMSS.html` - Position-based comparison (`plot_position_based_comparison()`, not `main.py`)
 
 ### Debug Directory
 - `debug/` - Temporary debugging workspace (git-ignored)
