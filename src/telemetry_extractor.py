@@ -4,14 +4,63 @@ Telemetry extraction module for detecting throttle, brake, and steering values f
 
 import cv2
 import numpy as np
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 
 class TelemetryExtractor:
     """Extracts telemetry values from ROI images using computer vision."""
-    
+
+    VALID_ORIENTATIONS = ('horizontal', 'vertical')
+
+    def __init__(self, roi_config: Optional[Dict] = None):
+        """
+        Read bar orientation from the selected ROI profile.
+
+        ACC pedal bars fill left to right. Assetto Corsa (original) bars are
+        thin vertical strips that fill from the bottom. Missing
+        ``orientation`` stays ``horizontal`` so existing ACC profiles keep
+        working without a YAML change.
+
+        Args:
+            roi_config: One profile from roi_config.yaml (the throttle/brake
+                entries), not the whole file. None uses horizontal bars.
+        """
+        roi_config = roi_config or {}
+        self.throttle_orientation = self.bar_orientation(roi_config.get('throttle'))
+        self.brake_orientation = self.bar_orientation(roi_config.get('brake'))
+
+    @classmethod
+    def bar_orientation(cls, roi_entry: Optional[Dict] = None, default: str = 'horizontal') -> str:
+        """
+        Return ``horizontal`` or ``vertical`` for a throttle/brake ROI entry.
+
+        Args:
+            roi_entry: One ROI mapping (x, y, width, height, optional orientation).
+            default: Used when the entry or the key is missing.
+
+        Returns:
+            ``horizontal`` or ``vertical``.
+
+        Raises:
+            ValueError: If orientation is present but not one of those two.
+        """
+        if not roi_entry:
+            return default
+
+        raw = roi_entry.get('orientation', default)
+        if raw is None or str(raw).strip() == '':
+            return default
+
+        orientation = str(raw).strip().lower()
+        if orientation not in cls.VALID_ORIENTATIONS:
+            raise ValueError(
+                f"Invalid bar orientation '{raw}'. "
+                f"Use 'horizontal' or 'vertical'."
+            )
+        return orientation
+
     @staticmethod
-    def extract_bar_percentage(roi_image: np.ndarray, target_color: str = 'green', orientation: str = 'vertical') -> float:
+    def extract_bar_percentage(roi_image: np.ndarray, target_color: str = 'green', orientation: str = 'horizontal') -> float:
         """
         Extract percentage value from a bar by detecting filled portion.
         Supports both horizontal and vertical bars.
@@ -19,7 +68,9 @@ class TelemetryExtractor:
         Args:
             roi_image: Cropped image of the bar
             target_color: 'green' for throttle, 'gray' for brake
-            orientation: 'vertical' or 'horizontal'
+            orientation: 'vertical' (fill from the bottom) or 'horizontal'
+                (fill from the left). Defaults to horizontal, which matches
+                ACC. Pass the profile value for Assetto Corsa original.
             
         Returns:
             Percentage value (0.0 to 100.0)
@@ -324,17 +375,27 @@ class TelemetryExtractor:
     def extract_frame_telemetry(self, roi_dict: Dict[str, np.ndarray]) -> Dict[str, float]:
         """
         Extract all telemetry values from a frame's ROI images.
-        
+
+        Throttle and brake orientation come from the ROI profile passed to
+        the constructor. Steering is optional: Assetto Corsa original has no
+        on-screen steering indicator, and a missing crop is reported as 0.0.
+
         Args:
-            roi_dict: Dictionary with 'throttle', 'brake', 'steering' ROI images
-            
+            roi_dict: Dictionary with 'throttle' and 'brake' ROI images.
+                'steering' is included when the profile defines that ROI.
+
         Returns:
             Dictionary with extracted values including TC and ABS activation status
         """
+        steering_roi = roi_dict.get('steering')
         return {
-            'throttle': self.extract_bar_percentage(roi_dict['throttle'], 'green', 'horizontal'),
-            'brake': self.extract_bar_percentage(roi_dict['brake'], 'red', 'horizontal'),
-            'steering': self.extract_steering_position(roi_dict['steering']),
+            'throttle': self.extract_bar_percentage(
+                roi_dict['throttle'], 'green', self.throttle_orientation
+            ),
+            'brake': self.extract_bar_percentage(
+                roi_dict['brake'], 'red', self.brake_orientation
+            ),
+            'steering': self.extract_steering_position(steering_roi),
             'tc_active': self.extract_tc_active(roi_dict['throttle']),
             'abs_active': self.extract_abs_active(roi_dict['brake'])
         }

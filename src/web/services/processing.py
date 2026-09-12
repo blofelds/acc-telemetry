@@ -160,9 +160,9 @@ class VideoProcessingService:
                 f"Using ROI profile '{selected_profile}' for {video_height}p video"
             )
 
-        # Initialize components
+        # Initialize components. Orientation comes from the selected profile.
         processor = VideoProcessor(video_path, roi_config)
-        extractor = TelemetryExtractor()
+        extractor = TelemetryExtractor(roi_config)
 
         lap_roi_config = roi_config.copy()
         if 'lap_number_training' in roi_config:
