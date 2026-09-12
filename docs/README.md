@@ -147,15 +147,14 @@ Detailed technical analyses of bugs that were discovered and fixed. Information 
 
 ### Visualization Guides (Partially Historical)
 
-- **[DETAILED_ANALYSIS_GUIDE.md](DETAILED_ANALYSIS_GUIDE.md)** - Static visualization guide
+- **[DETAILED_ANALYSIS_GUIDE.md](DETAILED_ANALYSIS_GUIDE.md)** - Static visualization guide (HISTORICAL)
   - Describes the old detailed static PNG visualizations
-  - Still functional via `generate_detailed_analysis.py`
-  - Most users now use interactive HTML visualizations instead
+  - The `generate_detailed_analysis.py` / `detailed_visualizer.py` scripts were removed
+  - Use interactive HTML from `main.py` and `InteractiveTelemetryVisualizer` instead
 
 - **[INTERACTIVE_VISUALIZATION_GUIDE.md](INTERACTIVE_VISUALIZATION_GUIDE.md)** - Interactive viz guide
-  - Early guide for Plotly visualizations
-  - Information integrated into USER_GUIDE.md
-  - Kept for detailed Plotly-specific reference
+  - Plotly visualizations (current)
+  - Also covered in USER_GUIDE.md
 
 ### Lap Recognition (Partially Historical)
 
@@ -226,6 +225,10 @@ When updating documentation:
 - Preserved all historical documents and bug fix information
 - Added this index to help navigate documentation
 - Organized docs by audience (users vs developers) and purpose
+
+**September 2025** - Removed stale file references
+- Dropped docs for deleted CLI helpers (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, etc.)
+- Documented current workflows: `videos/` + `main.py`, visualizer APIs, and optional `run_server.py` web API
 
 **October 2024** - Active development period
 - Multiple "What's New" announcements as features were added
