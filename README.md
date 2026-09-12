@@ -271,7 +271,7 @@ This is a learning project, but contributions are welcome! Areas where help woul
 
 ## 📄 License
 
-MIT License - Feel free to use, modify, and share!
+[MIT License](LICENSE) — feel free to use, modify, and share.
 
 ## 🙏 Acknowledgments
 

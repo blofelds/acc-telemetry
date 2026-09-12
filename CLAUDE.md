@@ -150,9 +150,8 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
 
 3. **[lap_detector.py](src/lap_detector.py)** - LapDetector class
    - Fast lap number and OCR detection
-   - Template matching for lap numbers: 100-500x faster than OCR
-   - tesserocr for speed/gear: Direct C++ API, ~2ms per frame
-   - pytesseract fallback for lap times: Used only at lap transitions
+   - tesserocr for lap numbers, speed, and gear: Direct C++ API, ~2ms per frame
+   - pytesseract fallback: lap times at transitions, and if tesserocr is unavailable
    - Temporal smoothing: Majority voting across recent frames
 
 4. **[position_tracker_v2.py](src/position_tracker_v2.py)** - PositionTrackerV2 class
@@ -168,16 +167,16 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
    - Synchronized plots (throttle, brake, steering, speed, position)
 
 ### Configuration
-- **[roi_config.yaml](config/roi_config.yaml)** - ROI coordinates (x, y, width, height) for all HUD elements
-  - Currently configured for **1280×720 (720p)** videos
+- **[roi_config.yaml](config/roi_config.yaml)** - Named ROI profiles (resolution- and source-specific)
+  - Examples: `my_ps5_1080p`, `twitch_720p`, `go_setups_720p`, `assetto_corsa_1080p`
   - Each ROI defined as: `{x, y, width, height}` in pixels
-  - **Resolution dependency**: Coordinates must be recalibrated for different resolutions
+  - **Resolution dependency**: Pick or add a matching profile; do not assume a single 720p layout
 
 ### Output Directory
 - `data/output/` - Generated files:
-  - `telemetry_YYYYMMDD_HHMMSS.csv` - Frame-by-frame raw data
-  - `telemetry_interactive_YYYYMMDD_HHMMSS.html` - Interactive Plotly graphs
-  - `lap_comparison_position_YYYYMMDD_HHMMSS.html` - Position-based comparison
+  - `telemetry_YYYYMMDD_HHMMSS.csv` - Frame-by-frame raw data (`main.py`)
+  - `telemetry_interactive_YYYYMMDD_HHMMSS.html` - Interactive Plotly graphs (`main.py`)
+  - `lap_comparison_position_YYYYMMDD_HHMMSS.html` - Position-based comparison (`plot_position_based_comparison()`, not `main.py`)
 
 ### Debug Directory
 - `debug/` - Temporary debugging workspace (git-ignored)
@@ -214,9 +213,9 @@ main.py (orchestrator)
 ### Configuration Structure
 The [config/roi_config.yaml](config/roi_config.yaml) file defines where to look for telemetry UI elements in the video.
 
-**Current configuration is for 1280×720 (720p) videos.**
+Coordinates are grouped into **named profiles**. `main.py` prompts for one; the web API matches `720p` / `1080p` in the profile name to video height.
 
-ROI regions defined:
+ROI regions defined per profile:
 - `throttle`: Horizontal green/yellow bar (bottom-right)
 - `brake`: Horizontal red/orange bar (below throttle)
 - `steering`: White dot indicator (above throttle)
@@ -224,33 +223,27 @@ ROI regions defined:
 - `gear`: Gear number (center of rev meter)
 - `lap_number`: Lap flag with number (top-left)
 - `last_lap_time`: Completed lap time (top-left)
-- `track_map`: Circular minimap (top-left, 269×183px)
+- `track_map`: Circular minimap (top-left)
 
 Each ROI is defined as:
 ```yaml
-throttle:
-  x: 1170        # Left edge position (pixels from left)
-  y: 670         # Top edge position (pixels from top)
-  width: 103     # ROI width in pixels
-  height: 14     # ROI height in pixels
+my_ps5_1080p:
+  throttle:
+    x: 1758        # Left edge position (pixels from left)
+    y: 1008        # Top edge position (pixels from top)
+    width: 143     # ROI width in pixels
+    height: 15     # ROI height in pixels
 ```
 
 ### Resolution Dependency and Scaling
 
-#### Scaling for Different Resolutions
-- **1920×1080 (1080p/Full HD)**: Multiply all values by 1.5
-- **2560×1440 (1440p/2K)**: Multiply all values by 2.0
-- **3840×2160 (4K)**: Multiply all values by 3.0
-- **854×480 (480p)**: Multiply all values by 0.67
+#### Scaling for a new profile
+Start from a known profile, then multiply by (new height / profile height):
+- **720p → 1080p**: Multiply all values by 1.5
+- **720p → 1440p**: Multiply by 2.0
+- **720p → 4K**: Multiply by 3.0
 
-Example for 1080p:
-```yaml
-throttle:
-  x: 1755      # 1170 × 1.5
-  y: 1005      # 670 × 1.5
-  width: 154   # 103 × 1.5
-  height: 21   # 14 × 1.5
-```
+Save the result as a **new named profile** rather than overwriting an existing one.
 
 ### Finding ROI Coordinates
 If the default coordinates don't work for your video:
@@ -469,12 +462,8 @@ tesseract --version
 /opt/homebrew/share/tessdata/
 ```
 
-### Template Matching for Performance
-Lap number detection uses **template matching** instead of OCR:
-- 100-500x faster (~2ms vs ~50-250ms per frame)
-- Pre-extracted digit templates matched against ROI
-- Falls back to OCR if confidence low
-- See [src/lap_detector.py](src/lap_detector.py) `extract_lap_number()`
+### Template Matching (historical)
+Lap numbers previously used template matching. `extract_lap_number()` now runs **tesserocr** (pytesseract fallback). `src/template_matcher.py` is unused on that path. See [docs/TEMPLATE_MATCHING_GUIDE.md](docs/TEMPLATE_MATCHING_GUIDE.md).
 
 ### Kalman Filtering for Position Tracking
 Position tracking includes outlier rejection:
@@ -770,7 +759,7 @@ cap.release()
 3. **Visualization**: Plotly graph generation (~2-5s) - only at end
 
 ### Optimization Notes
-- Template matching eliminated 100-500x OCR slowdown for lap numbers
+- tesserocr (~2ms) is the current lap-number path; template matching is unused leftover
 - Kalman filter adds <1ms overhead per frame
 - Multi-frame track path extraction runs once at startup (not per-frame)
 - Use generator pattern for frame processing to avoid loading entire video into memory

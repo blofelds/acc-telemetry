@@ -187,7 +187,7 @@ def main():
         print(f"   Using lap_number_training ROI for improved accuracy")
         lap_roi_config['lap_number'] = roi_config['lap_number_training']
     
-    # Use template matching for lap numbers (100-500x faster than OCR)
+    # Lap numbers via tesserocr (pytesseract fallback)
     lap_detector = LapDetector(lap_roi_config, enable_performance_stats=True)
     position_tracker = PositionTrackerV2()
     visualizer = InteractiveTelemetryVisualizer()

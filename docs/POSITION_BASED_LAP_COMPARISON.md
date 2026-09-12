@@ -61,7 +61,7 @@ The visualizer will:
 3. Create an interactive HTML file under `data/output/`
 4. Return the path to the saved file
 
-> **Note:** The former standalone script `compare_laps_by_position.py` has been removed. Use `InteractiveTelemetryVisualizer.plot_position_based_comparison()` as shown above (or the web API `POST /telemetry/compare`).
+> **Note:** The former standalone script `compare_laps_by_position.py` has been removed. Use `InteractiveTelemetryVisualizer.plot_position_based_comparison()` as shown above to write the HTML file. The web API `POST /api/telemetry/compare` returns JSON lap arrays for a client to plot; it does not generate that HTML.
 
 ### Output
 

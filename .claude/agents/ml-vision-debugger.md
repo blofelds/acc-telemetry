@@ -54,9 +54,9 @@ You are an elite ML/Computer Vision Debugging Specialist with deep expertise in 
 - Processing pipeline: VideoProcessor → TelemetryExtractor → LapDetector → PositionTrackerV2 → Visualizer
 - ROI-based extraction: Each HUD element has defined coordinates in config/roi_config.yaml
 - HSV color space detection for throttle (green/yellow), brake (red/orange), steering (white)
-- Template matching for lap numbers (~2ms), tesserocr for speed/gear (~2ms), pytesseract for lap times (~50ms)
+- tesserocr for lap numbers, speed, and gear (~2ms); pytesseract for lap times (~50ms, transitions only)
 - Kalman filtering for position tracking with outlier rejection (>10% innovation)
-- Current config is for 720p video (1280×720) - ROI coordinates are resolution-dependent
+- ROI coordinates are named profiles in config/roi_config.yaml (for example `my_ps5_1080p`, `twitch_720p`)
 
 **Diagnostic Script Creation Guidelines:**
 

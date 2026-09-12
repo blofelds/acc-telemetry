@@ -515,25 +515,35 @@ Originally hardcoded → Now external YAML
 
 **ROI Structure:**
 
-```yaml
-throttle:
-  x: 1170      # X position from left edge
-  y: 670       # Y position from top edge
-  width: 103   # ROI width in pixels
-  height: 14   # ROI height in pixels
+Coordinates live under **named profiles** (resolution- and source-specific), not a single flat 720p block:
 
-# All coordinates calibrated for 1280×720 (720p) videos
-# For other resolutions, scale proportionally
+```yaml
+my_ps5_1080p:
+  throttle:
+    x: 1758      # X position from left edge
+    y: 1008      # Y position from top edge
+    width: 143   # ROI width in pixels
+    height: 15   # ROI height in pixels
+  # brake, steering, lap_number, track_map, ...
+
+twitch_720p:
+  throttle:
+    x: 1172
+    y: 670
+    width: 102
+    height: 14
 ```
 
-**Scaling for Different Resolutions:**
+`main.py` prompts for a profile. The web API picks one from video height (`720p` / `1080p` in the profile name).
+
+**Scaling for a new resolution:**
 
 ```python
-# Formula: new_value = original_value * (new_resolution / 1280 for width, 720 for height)
+# Start from a known profile, then:
+# new_value = original_value * (new_height / profile_height)
 
-# For 1920×1080 (1080p): multiply by 1.5
-# For 2560×1440 (1440p): multiply by 2.0
-# For 3840×2160 (4K): multiply by 3.0
+# From a 720p profile to 1080p: multiply by 1.5
+# From a 720p profile to 1440p: multiply by 2.0
 ```
 
 **Why tight ROI regions are important:**
@@ -549,7 +559,7 @@ throttle:
 ```
 1. main.py initializes all components
    ├─> VideoProcessor opens video file
-   ├─> LapDetector prepares OCR/templates
+   ├─> LapDetector prepares OCR (tesserocr)
    ├─> PositionTrackerV2 extracts racing line (one-time)
    └─> TelemetryExtractor sets up color ranges
 
@@ -563,16 +573,19 @@ throttle:
    ├─> LapDetector extracts speed/gear (OCR)
    └─> Data appended to list
 
-3. After all frames processed:
+3. After all frames processed (`main.py`):
    ├─> Convert list to pandas DataFrame
    ├─> Export to CSV
-   ├─> Generate interactive HTML visualization
-   └─> Optionally: position-based comparison
+   └─> Generate interactive HTML visualization (`plot_telemetry`)
 
-4. Output files saved to data/output/:
+4. Output files from `main.py` in data/output/:
    ├─> telemetry_YYYYMMDD_HHMMSS.csv
-   ├─> telemetry_interactive_YYYYMMDD_HHMMSS.html
-   └─> lap_comparison_position_YYYYMMDD_HHMMSS.html
+   └─> telemetry_interactive_YYYYMMDD_HHMMSS.html
+
+   Position-based HTML (`lap_comparison_position_*.html`) is **not**
+   written by `main.py`. Call
+   `InteractiveTelemetryVisualizer.plot_position_based_comparison()`
+   on the CSV after extraction.
 ```
 
 ### Performance Characteristics

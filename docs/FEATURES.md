@@ -53,7 +53,7 @@ This filter eliminated false readings while maintaining accuracy for actual thro
 
 ## Lap Number Detection
 
-**Current Implementation:** Template matching (2ms per frame) with temporal smoothing
+**Current Implementation:** tesserocr (~2ms per frame) with temporal smoothing; pytesseract if tesserocr is unavailable
 
 **Development Journey - OCR to Template Matching:**
 
@@ -82,7 +82,7 @@ The lap detection feature went through several iterations:
 - **Pros**: No calibration needed, universally applicable
 - **Cons**: Requires tesserocr installation (falls back to pytesseract if unavailable)
 
-**Current approach:** tesserocr by default, template matching as high-performance option
+**Current approach:** tesserocr on every frame (pytesseract fallback). `TemplateMatcher` is still in the tree from Phase 2 but is not called by `extract_lap_number()`.
 
 **Development Journey - Temporal Smoothing:**
 
@@ -310,7 +310,7 @@ Throughout this project, we've followed several key principles:
 1. **Try sophisticated solutions first to understand the problem deeply** (Kalman filtering, complex preprocessing)
 2. **Then simplify to the minimum that works** (simple thresholds, direct OCR)
 3. **Preserve the journey** (document what was tried and why it was kept/replaced)
-4. **Performance matters, but not at the cost of complexity** (tesserocr is good enough, template matching is optional)
+4. **Performance matters, but not at the cost of complexity** (tesserocr is good enough; template matching was an optional experiment and is unused today)
 5. **User experience is paramount** (interactive visualizations, position-based comparison)
 
 The features described here represent the current state after multiple iterations. The git history and documentation preserve the experiments, failures, and learnings that led here.
