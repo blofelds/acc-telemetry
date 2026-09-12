@@ -64,6 +64,9 @@ class VideoProcessingService:
         match the same height, ``has_overlay`` prefers overlay-oriented names
         (``go_setups`` / ``overlay``).
 
+        ``assetto_corsa`` profiles are never chosen from height alone. That
+        HUD is a different game; callers must pass ``profile_name``.
+
         Returns:
             Tuple of (profile_name, roi_config dict).
 
@@ -103,9 +106,17 @@ class VideoProcessingService:
 
         default_matches = [
             name for name in matching
-            if 'go_setups' not in name and 'overlay' not in name
+            if 'go_setups' not in name
+            and 'overlay' not in name
+            and 'assetto_corsa' not in name
         ]
-        chosen = (default_matches or matching)[0]
+        if not default_matches:
+            available = ", ".join(profiles)
+            raise ValueError(
+                f"No default ROI profile for {video_height}p video. "
+                f"Pass profile_name explicitly. Available profiles: {available}"
+            )
+        chosen = default_matches[0]
         return chosen, profiles[chosen]
 
     async def process_video(

@@ -7,6 +7,7 @@ import yaml
 
 from src.telemetry_extractor import TelemetryExtractor
 from src.video_processor import VideoProcessor
+from src.web.services.processing import VideoProcessingService
 
 
 def _green_from_bottom(height: int, width: int, filled_rows: int) -> np.ndarray:
@@ -95,6 +96,23 @@ class TestBarOrientation(unittest.TestCase):
         acc = profiles['my_ps5_1080p']
         self.assertEqual(acc['throttle']['orientation'], 'horizontal')
         self.assertIn('steering', acc)
+
+
+    def test_height_match_does_not_select_assetto_corsa(self):
+        config = {
+            'my_ps5_1080p': {'throttle': {'orientation': 'horizontal'}},
+            'assetto_corsa_1080p': {'throttle': {'orientation': 'vertical'}},
+        }
+        service = VideoProcessingService.__new__(VideoProcessingService)
+        name, profile = service.select_roi_profile(config, 1080)
+        self.assertEqual(name, 'my_ps5_1080p')
+        self.assertEqual(profile['throttle']['orientation'], 'horizontal')
+
+        name, profile = service.select_roi_profile(
+            config, 1080, profile_name='assetto_corsa_1080p'
+        )
+        self.assertEqual(name, 'assetto_corsa_1080p')
+        self.assertEqual(profile['throttle']['orientation'], 'vertical')
 
 
 if __name__ == '__main__':
