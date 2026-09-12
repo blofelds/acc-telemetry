@@ -515,25 +515,35 @@ Originally hardcoded → Now external YAML
 
 **ROI Structure:**
 
-```yaml
-throttle:
-  x: 1170      # X position from left edge
-  y: 670       # Y position from top edge
-  width: 103   # ROI width in pixels
-  height: 14   # ROI height in pixels
+Coordinates live under **named profiles** (resolution- and source-specific), not a single flat 720p block:
 
-# All coordinates calibrated for 1280×720 (720p) videos
-# For other resolutions, scale proportionally
+```yaml
+my_ps5_1080p:
+  throttle:
+    x: 1758      # X position from left edge
+    y: 1008      # Y position from top edge
+    width: 143   # ROI width in pixels
+    height: 15   # ROI height in pixels
+  # brake, steering, lap_number, track_map, ...
+
+twitch_720p:
+  throttle:
+    x: 1172
+    y: 670
+    width: 102
+    height: 14
 ```
 
-**Scaling for Different Resolutions:**
+`main.py` prompts for a profile. The web API picks one from video height (`720p` / `1080p` in the profile name).
+
+**Scaling for a new resolution:**
 
 ```python
-# Formula: new_value = original_value * (new_resolution / 1280 for width, 720 for height)
+# Start from a known profile, then:
+# new_value = original_value * (new_height / profile_height)
 
-# For 1920×1080 (1080p): multiply by 1.5
-# For 2560×1440 (1440p): multiply by 2.0
-# For 3840×2160 (4K): multiply by 3.0
+# From a 720p profile to 1080p: multiply by 1.5
+# From a 720p profile to 1440p: multiply by 2.0
 ```
 
 **Why tight ROI regions are important:**

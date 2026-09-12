@@ -211,7 +211,9 @@ Or use the web API `POST /telemetry/compare` when running `python run_server.py`
 
 ## Resolution Configuration
 
-ROI coordinates in `config/roi_config.yaml` are organized as **named profiles** (e.g. `my_ps5_1080p`). Pick the matching profile when `main.py` prompts you.
+ROI coordinates in `config/roi_config.yaml` are organized as **named profiles**. Pick the matching profile when `main.py` prompts you.
+
+Shipped profiles include `my_ps5_1080p`, `assetto_corsa_1080p`, `twitch_720p`, and `go_setups_720p`. There is no single default 720p layout.
 
 ### Scaling guidance (from a known base resolution)
 

@@ -56,7 +56,7 @@ You are an elite ML/Computer Vision Debugging Specialist with deep expertise in 
 - HSV color space detection for throttle (green/yellow), brake (red/orange), steering (white)
 - Template matching for lap numbers (~2ms), tesserocr for speed/gear (~2ms), pytesseract for lap times (~50ms)
 - Kalman filtering for position tracking with outlier rejection (>10% innovation)
-- Current config is for 720p video (1280×720) - ROI coordinates are resolution-dependent
+- ROI coordinates are named profiles in config/roi_config.yaml (for example `my_ps5_1080p`, `twitch_720p`)
 
 **Diagnostic Script Creation Guidelines:**
 

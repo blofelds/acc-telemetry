@@ -24,29 +24,32 @@ This document consolidates solutions to common issues, bug fixes that were imple
 - ROI debug images show wrong parts of screen
 
 **Root Cause:**
-ROI coordinates in `config/roi_config.yaml` are calibrated for 1280×720 (720p) videos. If your video is a different resolution, coordinates won't match HUD elements.
+ROI coordinates in `config/roi_config.yaml` are organized as **named profiles** (for example `my_ps5_1080p`, `twitch_720p`, `go_setups_720p`). If you pick the wrong profile, or your HUD/resolution has no matching profile, coordinates won't match HUD elements.
 
 **Solution:**
 
 1. **Check your video resolution:**
 ```bash
-python -c "import cv2; cap=cv2.VideoCapture('your_video.mp4'); print(f'{int(cap.get(3))}x{int(cap.get(4))}')"
+python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); print(f'{int(cap.get(3))}x{int(cap.get(4))}')"
 ```
 
-2. **Scale ROI coordinates:**
-   - **1920×1080 (1080p)**: Multiply all x, y, width, height by 1.5
+2. **Pick (or add) a matching profile** in `config/roi_config.yaml`, then select it when `main.py` prompts you. Do not assume a single 720p layout.
+
+3. **Scale from a known profile** only when adding a new resolution:
+   - **1920×1080 (1080p)**: Multiply 720p coordinates by 1.5
    - **2560×1440 (1440p)**: Multiply by 2.0
    - **3840×2160 (4K)**: Multiply by 3.0
 
-3. **Manual calibration** (if scaling doesn't work):
+4. **Manual calibration** (if scaling doesn't work):
 ```bash
 # Extract a frame
-python -c "import cv2; cap=cv2.VideoCapture('video.mp4'); ret,f=cap.read(); cv2.imwrite('frame.png',f)"
+mkdir -p debug
+python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); ret,f=cap.read(); cv2.imwrite('debug/frame.png',f)"
 ```
-   - Open `frame.png` in image viewer with pixel coordinates (GIMP, Photoshop, Preview with Developer Tools)
+   - Open `debug/frame.png` in image viewer with pixel coordinates (GIMP, Photoshop, Preview with Developer Tools)
    - Locate HUD elements (throttle bar bottom-right, lap number top-left)
    - Measure x, y, width, height for each element
-   - Update `config/roi_config.yaml`
+   - Update (or add) a named profile in `config/roi_config.yaml`
 
 ## Lap Detection Issues
 

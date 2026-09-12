@@ -41,7 +41,7 @@ Converts red dot position to track position percentage:
 
 ### ROI Setup
 
-The minimap ROI has been added to `config/roi_config.yaml`:
+Each named profile in `config/roi_config.yaml` includes a `track_map` ROI. Example from `twitch_720p`:
 
 ```yaml
 # Track map - circular minimap in top-left corner
@@ -52,7 +52,7 @@ track_map:
   height: 183
 ```
 
-**Note**: These coordinates are for 1280×720 videos. Scale proportionally for other resolutions.
+**Note**: Coordinates are profile-specific. `my_ps5_1080p` uses a larger minimap box. Pick the profile that matches the video when `main.py` prompts you.
 
 ## CSV Output Format
 
@@ -206,8 +206,8 @@ plt.savefig('position_vs_input.png')
 3. **Simple closest-point matching**: Assumes red dot stays near path
    - Solution: Add velocity-based prediction for smoother tracking
 
-4. **Resolution-dependent ROI**: Minimap coordinates hardcoded for 720p
-   - Solution: Auto-detect minimap location or scale ROI dynamically
+4. **Resolution-dependent ROI**: Minimap coordinates are per named profile, not auto-scaled
+   - Solution: Pick or add a matching profile; longer-term, auto-detect the minimap
 
 ### Planned Enhancements
 
