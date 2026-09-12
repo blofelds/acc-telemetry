@@ -7,7 +7,7 @@ Added comprehensive performance tracking to `main.py` to monitor the execution t
 
 ### Per-Frame Operations (tracked every frame):
 1. **Telemetry Extraction** - Throttle, brake, steering bar analysis
-2. **Lap Number Detection** - Template matching for lap display
+2. **Lap Number Detection** - OCR for lap display (tesserocr / pytesseract)
 3. **Speed Extraction** - OCR for speed value
 4. **Gear Extraction** - OCR for current gear
 5. **Lap Transition Detection** - Logic to detect lap changes
@@ -123,7 +123,7 @@ Speed Extraction: 5.22ms avg, 34.6% of total
 Telemetry Extraction: 4.11ms avg, 27.3% of total
 ```
 
-**Interpretation**: OCR operations (speed) take more time than computer vision (telemetry bars). This is expected since OCR is more complex than color detection. Template matching for lap numbers (2.85ms) is much faster than OCR.
+**Interpretation**: OCR operations (speed) take more time than computer vision (telemetry bars). This is expected since OCR is more complex than color detection.
 
 ## Future Enhancements
 

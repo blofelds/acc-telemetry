@@ -79,7 +79,7 @@ If you're new to the project, start with these documents:
 
 - **[PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md)** - OCR performance evolution
   - pytesseract vs tesserocr comparison
-  - Template matching approach
+  - Template matching (historical intermediate step)
   - Performance benchmarks
   - Why tesserocr is the current default
 
@@ -87,20 +87,6 @@ If you're new to the project, start with these documents:
   - What is measured
   - How to interpret performance reports
   - Optimization targets
-
-### Template Matching
-
-- **[TEMPLATE_MATCHING_GUIDE.md](TEMPLATE_MATCHING_GUIDE.md)** - Template matching user guide
-  - What is template matching
-  - When to use it vs OCR
-  - Calibration instructions
-  - Troubleshooting
-
-- **[TEMPLATE_MATCHING_IMPLEMENTATION.md](TEMPLATE_MATCHING_IMPLEMENTATION.md)** - Implementation details
-  - Sliding window algorithm
-  - Why it's faster than OCR
-  - Integration with main pipeline
-  - Comparison to other approaches
 
 ## Historical/Deprecated Documents
 
@@ -158,6 +144,13 @@ Detailed technical analyses of bugs that were discovered and fixed. Information 
 
 ### Lap Recognition (Partially Historical)
 
+- **[TEMPLATE_MATCHING_GUIDE.md](TEMPLATE_MATCHING_GUIDE.md)** - Template matching user guide (HISTORICAL)
+  - Intermediate lap-number approach; not used by `extract_lap_number()` today
+  - tesserocr is the current default (see FEATURES.md)
+
+- **[TEMPLATE_MATCHING_IMPLEMENTATION.md](TEMPLATE_MATCHING_IMPLEMENTATION.md)** - Implementation details (HISTORICAL)
+  - Sliding window algorithm from the template-matching phase
+
 - **[LAP_RECOGNITION_FEATURE.md](LAP_RECOGNITION_FEATURE.md)** - Original lap detection feature
   - OCR-based lap number detection
   - Lap time extraction
@@ -186,8 +179,8 @@ Detailed technical analyses of bugs that were discovered and fixed. Information 
 **...configure ROI for different video resolution**
 → See [USER_GUIDE.md](USER_GUIDE.md) Resolution Configuration section
 
-**...understand why template matching is faster**
-→ Read [TEMPLATE_MATCHING_GUIDE.md](TEMPLATE_MATCHING_GUIDE.md) and [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md)
+**...understand why tesserocr replaced pytesseract**
+→ Read [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md) (template matching history: [TEMPLATE_MATCHING_GUIDE.md](TEMPLATE_MATCHING_GUIDE.md))
 
 **...learn about historical bugs and how they were fixed**
 → Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) Historical Bug Fixes section
@@ -225,6 +218,9 @@ When updating documentation:
 - Preserved all historical documents and bug fix information
 - Added this index to help navigate documentation
 - Organized docs by audience (users vs developers) and purpose
+
+**September 2026** - Accuracy pass against current code
+- Lap numbers documented as tesserocr; template matching guides marked historical
 
 **September 2025** - Removed stale file references
 - Dropped docs for deleted CLI helpers (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, etc.)

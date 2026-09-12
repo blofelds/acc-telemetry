@@ -139,9 +139,8 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
 
 3. **[lap_detector.py](src/lap_detector.py)** - LapDetector class
    - Fast lap number and OCR detection
-   - Template matching for lap numbers: 100-500x faster than OCR
-   - tesserocr for speed/gear: Direct C++ API, ~2ms per frame
-   - pytesseract fallback for lap times: Used only at lap transitions
+   - tesserocr for lap numbers, speed, and gear: Direct C++ API, ~2ms per frame
+   - pytesseract fallback: lap times at transitions, and if tesserocr is unavailable
    - Temporal smoothing: Majority voting across recent frames
 
 4. **[position_tracker_v2.py](src/position_tracker_v2.py)** - PositionTrackerV2 class
@@ -452,12 +451,8 @@ tesseract --version
 /opt/homebrew/share/tessdata/
 ```
 
-### Template Matching for Performance
-Lap number detection uses **template matching** instead of OCR:
-- 100-500x faster (~2ms vs ~50-250ms per frame)
-- Pre-extracted digit templates matched against ROI
-- Falls back to OCR if confidence low
-- See [src/lap_detector.py](src/lap_detector.py) `extract_lap_number()`
+### Template Matching (historical)
+Lap numbers previously used template matching. `extract_lap_number()` now runs **tesserocr** (pytesseract fallback). `src/template_matcher.py` is unused on that path. See [docs/TEMPLATE_MATCHING_GUIDE.md](docs/TEMPLATE_MATCHING_GUIDE.md).
 
 ### Kalman Filtering for Position Tracking
 Position tracking includes outlier rejection:
@@ -753,7 +748,7 @@ cap.release()
 3. **Visualization**: Plotly graph generation (~2-5s) - only at end
 
 ### Optimization Notes
-- Template matching eliminated 100-500x OCR slowdown for lap numbers
+- tesserocr (~2ms) is the current lap-number path; template matching is unused leftover
 - Kalman filter adds <1ms overhead per frame
 - Multi-frame track path extraction runs once at startup (not per-frame)
 - Use generator pattern for frame processing to avoid loading entire video into memory

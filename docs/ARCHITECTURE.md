@@ -559,7 +559,7 @@ twitch_720p:
 ```
 1. main.py initializes all components
    ├─> VideoProcessor opens video file
-   ├─> LapDetector prepares OCR/templates
+   ├─> LapDetector prepares OCR (tesserocr)
    ├─> PositionTrackerV2 extracts racing line (one-time)
    └─> TelemetryExtractor sets up color ranges
 

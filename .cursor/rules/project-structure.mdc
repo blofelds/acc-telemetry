@@ -33,7 +33,7 @@ Optional web API: [run_server.py](mdc:run_server.py) → [src/web/](mdc:src/web/
    - Handles color changes when TC/ABS activate (green→yellow, red→orange)
 
 3. **[lap_detector.py](mdc:src/lap_detector.py)** - LapDetector class
-   - Template matching / OCR for lap numbers, speed, gear, lap times
+   - tesserocr (pytesseract fallback) for lap numbers, speed, gear, lap times
 
 4. **[position_tracker_v2.py](mdc:src/position_tracker_v2.py)** - PositionTrackerV2 class
    - Minimap-based track position (0-100%)
