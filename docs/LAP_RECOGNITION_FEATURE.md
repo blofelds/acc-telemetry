@@ -1,5 +1,8 @@
 # Lap Recognition Feature
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Overview
 
 The lap recognition feature automatically detects lap numbers and lap times from ACC gameplay videos using OCR (Optical Character Recognition), enabling lap-by-lap analysis and comparison.
@@ -165,7 +168,7 @@ If OCR isn't working:
 1. **Extract a frame**:
    ```python
    import cv2
-   cap = cv2.VideoCapture('input_video.mp4')
+   cap = cv2.VideoCapture('videos/your_video.mp4')
    ret, frame = cap.read()
    cv2.imwrite('test_frame.png', frame)
    cap.release()
