@@ -174,4 +174,5 @@ Already set up:
 - `debug/` - Temporary debug artifacts
 
 ### Commit Guidelines
-- Separate commits for ROI config, algorithm changes, features, bug fixes, and docs
+- One logical change per commit (ROI config, algorithm, feature, bug fix, or docs)
+- Subject and body format: [commit-messages.mdc](mdc:.cursor/rules/commit-messages.mdc)

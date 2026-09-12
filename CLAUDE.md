@@ -9,6 +9,17 @@ The only GitHub remote for this project is [blofelds/acc-telemetry](https://gith
 - Push, pull, and open pull requests only against `origin` (`blofelds/acc-telemetry`).
 - Do not fetch, pull, push, or open issues or pull requests against `KubaC701/acc-telemetry`. That remote is not this project's upstream.
 
+## Commit messages
+
+Use Conventional Commits, then a body that explains why. Full rules are in [.cursor/rules/commit-messages.mdc](.cursor/rules/commit-messages.mdc).
+
+```
+type(scope): imperative description
+
+What was wrong before, and what to use instead. Wrap at 72 characters.
+No trailing period on the subject.
+```
+
 ## Project Overview
 
 ACC Telemetry Extractor is a **computer vision tool** that extracts detailed telemetry data from Assetto Corsa Competizione gameplay videos. Designed for **console players (PS5/Xbox)** who lack native telemetry export, it analyzes on-screen HUD elements frame-by-frame to extract:
