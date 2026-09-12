@@ -82,21 +82,29 @@ python3 -m venv venv
 source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
 
-# Extract telemetry (generates CSV + interactive HTML)
+# Place videos in videos/, then extract (interactive selection)
+# Generates CSV + interactive HTML in data/output/
 python main.py
 
-# Optional: Generate detailed static analysis
-python generate_detailed_analysis.py
+# Optional: start the FastAPI web backend
+python run_server.py
+```
 
-# Compare laps by position (gold standard - shows where time is gained/lost)
-python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+### Position-based lap comparison
+After extraction, use the visualizer API (standalone CLI scripts were removed):
 
-# Compare laps by time (separate lap files)
-python compare_laps.py lap1.csv lap2.csv
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)   # position-aligned comparison
+# viz.plot_lap_comparison(df, lap_numbers=[22, 23])  # time-based overlay
 ```
 
 ### Video Configuration
-By default, main.py looks for `./panorama.mp4`. To use a different video, edit the `VIDEO_PATH` variable in [main.py](main.py:81).
+Place `.mp4` files in `videos/`. `main.py` interactively selects the video and an ROI profile from [config/roi_config.yaml](config/roi_config.yaml).
 
 ## Project Structure
 
@@ -229,12 +237,13 @@ throttle:
 ### Finding ROI Coordinates
 If the default coordinates don't work for your video:
 
-1. **Extract a test frame** using the helper script:
+1. **Extract a test frame**:
    ```bash
-   python find_throttle_brake_bars.py
+   mkdir -p debug
+   python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); _,f=cap.read(); cv2.imwrite('debug/frame.png',f); cap.release()"
    ```
 
-2. **Open frame in image viewer** that shows pixel coordinates (GIMP, Photoshop, Preview with developer tools)
+2. **Open `debug/frame.png` in an image viewer** that shows pixel coordinates (GIMP, Photoshop, Preview with developer tools)
 
 3. **Locate ACC HUD elements** (usually bottom-right corner):
    - Throttle bar: Green/yellow horizontal bar
@@ -667,28 +676,26 @@ cv2.imwrite('debug_mask.png', mask)
 ### Calibrating for Different Video Resolutions
 
 #### Extract Test Frame
-Use [find_throttle_brake_bars.py](find_throttle_brake_bars.py) to extract a sample frame:
 ```bash
-python find_throttle_brake_bars.py
+mkdir -p debug videos
+python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); _,f=cap.read(); cv2.imwrite('debug/frame.png',f); cap.release()"
 ```
 
-This will save a frame from your video to inspect ROI positions.
+This saves a frame to `debug/frame.png` for inspecting ROI positions.
 
 #### Verify ROI Coordinates
 1. Open extracted frame in image viewer
 2. Identify throttle/brake/steering UI elements
 3. Note pixel coordinates
-4. Update [config/roi_config.yaml](config/roi_config.yaml)
-5. Re-run `python main.py`
+4. Update a profile in [config/roi_config.yaml](config/roi_config.yaml)
+5. Re-run `python main.py` and select that profile
 
 #### Quick Test on Short Clip
 For faster iteration, test on a short video clip:
 ```bash
-# Extract 10-second clip using ffmpeg
-ffmpeg -i input_video.mp4 -t 10 test_clip.mp4
-
-# Update VIDEO_PATH in main.py or create test script
-python main.py
+# Extract 10-second clip using ffmpeg into videos/
+ffmpeg -i videos/full_lap.mp4 -t 10 videos/test_clip.mp4
+python main.py  # select test_clip.mp4 when prompted
 ```
 
 ### Adding New Telemetry Channel
@@ -718,11 +725,11 @@ print(f"Frame {frame_num}/{video_info['frame_count']}", end='\r')
 **Common Causes:**
 - Video codec not supported by OpenCV → Re-encode with H.264
 - Corrupted video file → Verify with VLC or other player
-- Incorrect video path → Check `VIDEO_PATH` value
+- Incorrect video path → Ensure the file is under `videos/` and selected correctly
 
 **Test Video Opening:**
 ```python
-cap = cv2.VideoCapture(VIDEO_PATH)
+cap = cv2.VideoCapture('videos/your_video.mp4')
 print(f"Video opened: {cap.isOpened()}")
 print(f"Frame count: {cap.get(cv2.CAP_PROP_FRAME_COUNT)}")
 cap.release()
@@ -778,9 +785,9 @@ cap.release()
 ### Quick Test Workflow
 ```bash
 # Extract 10-second clip for fast iteration
-ffmpeg -i input_video.mp4 -t 10 test_clip.mp4
+ffmpeg -i videos/full_lap.mp4 -t 10 videos/test_clip.mp4
 
-# Update VIDEO_PATH in main.py to point to test_clip.mp4
+# Select test_clip.mp4 when main.py prompts
 python main.py
 ```
 

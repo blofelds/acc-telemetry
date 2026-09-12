@@ -1,5 +1,8 @@
 # Template Matching Implementation for Lap Number Detection
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Overview
 
 This document explains how we switched from OCR to template matching for lap number recognition, achieving **67x faster** performance (1.5ms vs 100ms per frame).
@@ -230,7 +233,7 @@ Templates MUST match the actual video to work properly. Here's how to extract th
 
 ### 1. Run Extraction Script
 ```bash
-python extract_lap_digit_templates.py
+# extract_lap_digit_templates.py removed (historical calibration helper)
 ```
 
 This scans the video and extracts lap number samples to `debug/digit_extraction/`.
@@ -244,14 +247,14 @@ Look for frames showing different lap numbers:
 
 ### 3. Copy as Templates
 ```bash
-python copy_extracted_as_templates.py
+# copy_extracted_as_templates.py removed (historical calibration helper)
 ```
 
 This automatically creates templates from the extracted frames.
 
 ### 4. Verify Templates
 ```bash
-python test_template_matching.py
+# test_template_matching.py removed
 ```
 
 Should show successful detections on various frames.
@@ -293,7 +296,7 @@ def extract_lap_number(self, frame: np.ndarray) -> Optional[int]:
 1. Templates don't match video (different resolution/HUD scale)
    - **Fix**: Re-extract templates from the actual video
 2. ROI coordinates wrong (not capturing lap number)
-   - **Fix**: Run `visualize_roi_debug.py` to check ROI position
+   - **Fix**: Run `a temporary debug script under debug/ (visualize_roi_debug.py was removed)` to check ROI position
 3. Threshold too high
    - **Fix**: Lower threshold from 0.6 to 0.5 temporarily for testing
 

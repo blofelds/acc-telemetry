@@ -41,23 +41,31 @@ python main.py
 
 ---
 
-### Lap Comparison (NEW!)
+### Lap Comparison
 
-Compare multiple laps side-by-side to find improvements:
+Compare multiple laps from a session CSV using the visualizer API:
 
-```bash
-# Compare 2 laps
-python compare_laps.py data/output/telemetry_20251022_005324.csv data/output/telemetry_20251022_010355.csv
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
 
-# Compare 3+ laps
-python compare_laps.py lap1.csv lap2.csv lap3.csv lap4.csv
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+
+# Time-based overlay of selected laps
+viz.plot_lap_comparison(df, lap_numbers=[22, 23, 24])
+
+# Position-aligned comparison (recommended)
+viz.plot_position_based_comparison(df)
 ```
 
 **What you see**:
-- All laps overlaid on same graph
-- Color-coded traces (different color per lap)
+- Laps overlaid on the same graph
+- Color-coded traces
 - Interactive zoom to compare braking points
 - Hover to see exact differences
+
+> **Note:** The former standalone script `compare_laps.py` has been removed. Use the methods above (or the web API).
 
 ---
 
@@ -90,7 +98,7 @@ python compare_laps.py lap1.csv lap2.csv lap3.csv lap4.csv
 
 **Goal**: Compare two laps to see if you braked earlier or later
 
-1. Run `compare_laps.py` with two lap CSV files
+1. Call `plot_lap_comparison()` or `plot_position_based_comparison()` on your session CSV
 2. Open the HTML file
 3. **Zoom into** the braking zone (look for red brake spike)
 4. **Hover** over both traces to see exact time difference
@@ -218,8 +226,8 @@ frame,time,throttle,brake,steering
 ### YouTube Analysis
 
 1. Download ACC video from YouTube (e.g., top driver's lap)
-2. Run `python main.py` on it
-3. Compare your lap vs theirs using `compare_laps.py`
+2. Place it in `videos/` and run `python main.py`
+3. Compare your lap vs theirs using `plot_position_based_comparison()` / `plot_lap_comparison()`
 4. Learn from the differences!
 
 ---

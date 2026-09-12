@@ -23,7 +23,7 @@ pip install -r requirements.txt
 ### Dependency Management
 - All dependencies listed in [requirements.txt](mdc:requirements.txt)
 - Pin exact versions for reproducibility
-- Core dependencies: opencv-python, numpy, pandas, matplotlib, pyyaml
+- Core dependencies: opencv-python, numpy, pandas, plotly, pyyaml
 
 ### Project Requirements
 - **Python version**: 3.8+ (currently using 3.10)
@@ -37,53 +37,42 @@ pip install -r requirements.txt
 # Ensure virtual environment is activated
 source venv/bin/activate
 
-# Place video file
-cp /path/to/your/acc_video.mp4 input_video.mp4
+# Place video file(s) in videos/
+mkdir -p videos
+cp /path/to/your/acc_video.mp4 videos/
 
-# Run extraction
+# Run extraction (interactive video + ROI profile selection)
 python main.py
 
 # Check outputs
 ls -lh data/output/
 ```
 
-### Custom Video Path
-Edit [main.py](mdc:main.py):
-```python
-VIDEO_PATH = '/path/to/your/video.mp4'
-```
-
-Or modify the script to accept command-line arguments:
-```python
-import sys
-VIDEO_PATH = sys.argv[1] if len(sys.argv) > 1 else './input_video.mp4'
+### Web API
+```bash
+python run_server.py
+# Docs: http://localhost:8000/docs
 ```
 
 ## Testing ROI Configuration
 
 ### Extract Test Frame
-Use [find_throttle_brake_bars.py](mdc:find_throttle_brake_bars.py) to extract a sample frame:
 ```bash
-python find_throttle_brake_bars.py
+mkdir -p debug
+python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); _,f=cap.read(); cv2.imwrite('debug/frame.png',f); cap.release()"
 ```
 
-This will save a frame from your video to inspect ROI positions.
-
 ### Verify ROI Coordinates
-1. Open extracted frame in image viewer
+1. Open `debug/frame.png` in an image viewer that shows pixel coordinates
 2. Identify throttle/brake/steering UI elements
 3. Note pixel coordinates
-4. Update [roi_config.yaml](mdc:config/roi_config.yaml)
-5. Re-run `python main.py`
+4. Update a profile in [roi_config.yaml](mdc:config/roi_config.yaml)
+5. Re-run `python main.py` and select that profile
 
 ### Quick Test on Short Clip
-For faster iteration, test on a short video clip:
 ```bash
-# Extract 10-second clip using ffmpeg
-ffmpeg -i input_video.mp4 -t 10 test_clip.mp4
-
-# Update VIDEO_PATH in main.py or create test script
-python main.py
+ffmpeg -i videos/full_lap.mp4 -t 10 videos/test_clip.mp4
+python main.py  # select test_clip.mp4 when prompted
 ```
 
 ## Common Development Tasks
@@ -92,8 +81,8 @@ python main.py
 1. Update [roi_config.yaml](mdc:config/roi_config.yaml) with new ROI
 2. Modify `VideoProcessor.extract_roi()` to include new ROI
 3. Add extraction method in [telemetry_extractor.py](mdc:src/telemetry_extractor.py)
-4. Update `extract_frame_telemetry()` to call new method
-5. Modify [visualizer.py](mdc:src/visualizer.py) to plot new channel
+4. Wire it into the main processing loop in [main.py](mdc:main.py)
+5. Modify [interactive_visualizer.py](mdc:src/interactive_visualizer.py) to plot the new channel
 
 ### Tuning Color Detection
 Edit HSV ranges in [telemetry_extractor.py](mdc:src/telemetry_extractor.py):
@@ -103,9 +92,21 @@ lower_green = np.array([30, 40, 40])  # Lower thresholds
 upper_green = np.array([90, 255, 255])  # Wider hue range
 ```
 
-Save intermediate masks for debugging:
+Save intermediate masks for debugging under `debug/`:
 ```python
-cv2.imwrite('debug_mask.png', mask)
+cv2.imwrite('debug/mask.png', mask)
+```
+
+### Lap Comparison
+Use [InteractiveTelemetryVisualizer](mdc:src/interactive_visualizer.py):
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
+# viz.plot_lap_comparison(df, lap_numbers=[22, 23])
 ```
 
 ### Adding Progress Visualization
@@ -116,10 +117,6 @@ print(f"Frame {frame_num}/{video_info['frame_count']}", end='\r')
 
 ### Optimizing Performance
 - **Sample fewer frames**: Process every Nth frame
-  ```python
-  if frame_num % 2 == 0:  # Process every other frame
-      # ... extraction logic
-  ```
 - **Reduce resolution**: Resize frame before processing (may affect accuracy)
 - **Parallel processing**: Use multiprocessing for frame batches (complex)
 
@@ -128,39 +125,22 @@ print(f"Frame {frame_num}/{video_info['frame_count']}", end='\r')
 ### Issue: Incorrect Telemetry Values
 
 **Debug Steps:**
-1. Extract and inspect ROI images
-   ```python
-   cv2.imwrite(f'debug_throttle_frame{frame_num}.png', roi_dict['throttle'])
-   ```
-
+1. Extract and inspect ROI images under `debug/`
 2. Save color masks
-   ```python
-   cv2.imwrite(f'debug_mask_frame{frame_num}.png', mask)
-   ```
-
-3. Print color statistics
-   ```python
-   print(f"ROI shape: {roi_image.shape}")
-   print(f"Min HSV: {hsv.min(axis=(0,1))}")
-   print(f"Max HSV: {hsv.max(axis=(0,1))}")
-   ```
-
-4. Verify ROI coordinates visually
-   ```python
-   cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-   cv2.imwrite('debug_frame_with_roi.png', frame)
-   ```
+3. Print min/max HSV in the ROI
+4. Overlay ROI rectangles on a sample frame and save for visual check
 
 ### Issue: Video Processing Errors
 
 **Common Causes:**
 - Video codec not supported by OpenCV → Re-encode with H.264
 - Corrupted video file → Verify with VLC or other player
-- Incorrect video path → Check `VIDEO_PATH` value
+- Incorrect video path → Ensure file is under `videos/` and selected correctly
 
 **Test Video Opening:**
 ```python
-cap = cv2.VideoCapture(VIDEO_PATH)
+import cv2
+cap = cv2.VideoCapture('videos/your_video.mp4')
 print(f"Video opened: {cap.isOpened()}")
 print(f"Frame count: {cap.get(cv2.CAP_PROP_FRAME_COUNT)}")
 cap.release()
@@ -175,12 +155,13 @@ cap.release()
 - [ ] Resource cleanup (video capture release)
 - [ ] Consistent naming conventions
 
-### Future: Automated Tools
-Consider adding:
-- **Black**: Code formatting
-- **pylint/flake8**: Linting
-- **mypy**: Type checking
-- **pytest**: Unit tests
+### Tests
+```bash
+python -m pytest tests/
+# or run individually:
+python tests/test_position_tracker_v2.py
+python tests/test_position_smoothing.py
+```
 
 ## Version Control Best Practices
 
@@ -188,22 +169,9 @@ Consider adding:
 Already set up:
 - `venv/` - Virtual environment
 - `__pycache__/` - Python bytecode
-- `*.pyc` - Compiled Python files
 - `data/output/` - Generated telemetry files (large)
-- `input_video.mp4` - Video files (very large)
+- `videos/` / large media - Video files
+- `debug/` - Temporary debug artifacts
 
 ### Commit Guidelines
-- Separate commits for:
-  - ROI configuration changes
-  - Algorithm improvements
-  - New features
-  - Bug fixes
-  - Documentation updates
-
-## Future Enhancement Ideas
-See [README.md](mdc:README.md) "Future Enhancements" section for project roadmap ideas:
-- Web UI for video upload
-- Interactive ROI calibration tool
-- Template matching for auto-detection
-- Lap time detection and analysis
-- Export to professional telemetry formats (MoTeC i2)
+- Separate commits for ROI config, algorithm changes, features, bug fixes, and docs

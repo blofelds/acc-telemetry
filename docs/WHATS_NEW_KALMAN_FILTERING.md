@@ -1,5 +1,8 @@
 # What's New: Kalman Filtering for Position Tracking - [DEPRECATED]
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## ⚠️ IMPORTANT: This Feature Was Later Replaced
 
 **Status:** This document describes a Kalman filtering feature that was **implemented, tested, and later replaced** with a simpler approach.
@@ -66,7 +69,7 @@ The outlier is automatically detected and rejected!
 
 ### New Files
 
-**1. `test_kalman_filtering.py`**
+**1. ~~`test_kalman_filtering.py`~~** (removed; see `tests/test_position_tracker_v2.py`)
 - Test script to verify outlier rejection
 - Simulates position data with known outlier
 - Generates visualization of filtering results
@@ -120,7 +123,7 @@ self.kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=1.0)
 ### Simulated Test Results
 
 ```bash
-python test_kalman_filtering.py
+# test_kalman_filtering.py removed — see tests/test_position_tracker_v2.py
 ```
 
 **Output:**
@@ -174,7 +177,7 @@ print(f"Outliers rejected: {debug_info['outlier_count']}")
 Simply re-run lap comparison with new telemetry:
 ```bash
 python main.py  # Extract telemetry with Kalman filtering
-python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+# (removed) use InteractiveTelemetryVisualizer.plot_position_based_comparison(df)
 ```
 
 Spikes should be eliminated!

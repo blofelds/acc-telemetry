@@ -1,5 +1,8 @@
 # 🎉 What's New: Interactive Telemetry Visualization
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Major Update: Plotly Integration
 
 Your ACC Telemetry Extractor now has **professional-grade interactive visualization** built-in!
@@ -18,7 +21,7 @@ Your ACC Telemetry Extractor now has **professional-grade interactive visualizat
    - Range slider for quick navigation
    - Built-in export to high-res PNG
 
-2. **Lap Comparison Tool** (`compare_laps.py`)
+2. **Lap Comparison Tool** (historically `compare_laps.py`; now `InteractiveTelemetryVisualizer.plot_lap_comparison()`)
    - Overlay multiple laps on same graph
    - Color-coded traces
    - Interactive analysis of differences
@@ -32,7 +35,7 @@ Your ACC Telemetry Extractor now has **professional-grade interactive visualizat
 ### 📦 New Files
 
 - `src/interactive_visualizer.py` - Plotly visualization engine
-- `compare_laps.py` - Multi-lap comparison script
+- ~~`compare_laps.py`~~ — removed; use `InteractiveTelemetryVisualizer.plot_lap_comparison()`
 - `INTERACTIVE_VISUALIZATION_GUIDE.md` - Full usage guide
 - Output: `telemetry_interactive_*.html` files
 
@@ -41,7 +44,7 @@ Your ACC Telemetry Extractor now has **professional-grade interactive visualizat
 - Added Plotly dependency (`pip install plotly`)
 - `main.py` now uses `InteractiveTelemetryVisualizer` by default
 - CSV export unchanged (still works)
-- Old static graphs still available via `generate_detailed_analysis.py`
+- Old static graphs via `generate_detailed_analysis.py` — **removed**; use interactive HTML from `main.py`
 
 ---
 
@@ -62,7 +65,7 @@ python main.py
 
 ```bash
 # Compare 2+ laps
-python compare_laps.py lap1.csv lap2.csv lap3.csv
+# (removed) use InteractiveTelemetryVisualizer.plot_lap_comparison(df, lap_numbers=[...])
 ```
 
 **Output**:
@@ -102,7 +105,7 @@ python main.py  # Now generates HTML instead of PNG
 
 **Want old static graphs?**
 ```bash
-python generate_detailed_analysis.py  # Still available
+# generate_detailed_analysis.py removed — use interactive HTML from main.py
 ```
 
 ### Update Dependencies
@@ -138,7 +141,8 @@ python main.py  # Process lap 1
 python main.py  # Process lap 2
 
 # Now compare them:
-python compare_laps.py \
+# (removed) plot_lap_comparison() / plot_position_based_comparison()
+# formerly: python compare_laps.py \
   data/output/telemetry_20251022_005324.csv \
   data/output/telemetry_20251022_010355.csv
 
@@ -157,7 +161,7 @@ python main.py
 python main.py
 
 # 4. Compare
-python compare_laps.py theirs.csv yours.csv
+# (removed) use InteractiveTelemetryVisualizer APIs instead of compare_laps.py
 
 # See exactly where they brake earlier/later!
 ```
@@ -202,7 +206,7 @@ python compare_laps.py theirs.csv yours.csv
 ### Immediate
 1. Read [INTERACTIVE_VISUALIZATION_GUIDE.md](INTERACTIVE_VISUALIZATION_GUIDE.md)
 2. Run `python main.py` to see new visualizations
-3. Try `compare_laps.py` with existing CSV files
+3. Try `plot_lap_comparison()` / `plot_position_based_comparison()` with existing CSV files
 
 ### Future Enhancements
 - Time delta graphs (Lap 1 vs Lap 2 time difference)

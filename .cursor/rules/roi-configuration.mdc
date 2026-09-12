@@ -48,12 +48,13 @@ throttle:
 ## Finding ROI Coordinates
 If the default coordinates don't work for your video:
 
-1. **Extract a test frame** using the helper script:
+1. **Extract a test frame**:
    ```bash
-   python find_throttle_brake_bars.py
+   mkdir -p debug
+   python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); _,f=cap.read(); cv2.imwrite('debug/frame.png',f); cap.release()"
    ```
 
-2. **Open frame in image viewer** that shows pixel coordinates (GIMP, Photoshop, Preview with developer tools)
+2. **Open `debug/frame.png` in an image viewer** that shows pixel coordinates (GIMP, Photoshop, Preview with developer tools)
 
 3. **Locate ACC HUD elements** (usually bottom-right corner):
    - Throttle bar: Green/yellow horizontal bar

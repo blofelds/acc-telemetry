@@ -1,5 +1,8 @@
 # Lap Detection Fix - October 22, 2024
 
+> **Historical document:** Describes a past feature announcement or diagnostic session. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer current workflows in [USER_GUIDE.md](USER_GUIDE.md) / [README.md](../README.md): `python main.py` and `InteractiveTelemetryVisualizer` APIs.
+
+
 ## Problem
 Lap numbers were not being saved correctly in the CSV output. Only sporadic laps appeared (1, 5, 23, 195) instead of continuous progression (0, 1, 2, 3...).
 

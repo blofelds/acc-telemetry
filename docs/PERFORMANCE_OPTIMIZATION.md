@@ -116,7 +116,7 @@ with open('config/roi_config.yaml') as f:
 lap_detector = LapDetector(roi_config)
 
 # Process video frames
-cap = cv2.VideoCapture('input_video.mp4')
+cap = cv2.VideoCapture('videos/your_video.mp4')
 while True:
     ret, frame = cap.read()
     if not ret:

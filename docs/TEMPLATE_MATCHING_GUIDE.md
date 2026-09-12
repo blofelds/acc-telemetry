@@ -87,7 +87,7 @@ This will:
 ```python
 import cv2
 
-cap = cv2.VideoCapture('input_video.mp4')
+cap = cv2.VideoCapture('videos/your_video.mp4')
 
 # Frame 150 shows lap 22
 cap.set(cv2.CAP_PROP_POS_FRAMES, 150)

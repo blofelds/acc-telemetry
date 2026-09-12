@@ -8,21 +8,36 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Extract telemetry from video
+# 2. Place gameplay video(s) in videos/
+mkdir -p videos
+cp /path/to/your/acc_video.mp4 videos/
+
+# 3. Extract telemetry (select video + ROI profile when prompted)
 python main.py
+```
 
-# 3. Compare laps by position (recommended)
-python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+### Position-based lap comparison
 
-# 4. Compare laps by time (for separate videos)
-python compare_laps.py lap1.csv lap2.csv
+After extraction, generate a comparison from the CSV using the visualizer API:
+
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
+```
+
+Time-based multi-lap overlay (same session CSV):
+
+```python
+viz.plot_lap_comparison(df, lap_numbers=[22, 23])
 ```
 
 ## Video Configuration
 
-By default, main.py looks for `./panorama.mp4`. To use a different video:
-- Edit the `VIDEO_PATH` variable in [main.py](../main.py:81)
-- Or rename your video to `panorama.mp4`
+Place `.mp4` files in `videos/`. `main.py` interactively asks which video and which ROI profile (from `config/roi_config.yaml`) to use.
 
 ## What You Get
 
@@ -37,7 +52,7 @@ By default, main.py looks for `./panorama.mp4`. To use a different video:
    - Synchronized plots (throttle, brake, steering, speed)
    - Works offline, shareable
 
-3. **Position-Based Comparison**: `lap_comparison_position_YYYYMMDD_HHMMSS.html`
+3. **Position-Based Comparison** (via visualizer API): `lap_comparison_position_YYYYMMDD_HHMMSS.html`
    - Compare laps by track position (not time)
    - Shows time delta at each position
    - Interactive dropdown to select which laps to compare
@@ -78,14 +93,21 @@ The HTML visualizations provide professional-grade analysis:
 
 ### Usage
 
-```bash
-python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
 ```
+
+Or use the web API `POST /telemetry/compare` when running `python run_server.py` (see [QUICKSTART_WEB.md](../QUICKSTART_WEB.md)).
 
 ### The Visualization
 
 **5 Synchronized Plots:**
-1. Throttle overlay (green vs red line)
+1. Throttle overlay
 2. Brake overlay
 3. Steering overlay
 4. Speed overlay
@@ -95,7 +117,7 @@ python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
 
 ### Analysis Workflow
 
-1. **Load comparison** - Tool auto-generates all pairwise comparisons
+1. **Load comparison** - Generate from your multi-lap CSV
 2. **Select laps** from dropdown (e.g., "Lap 22 vs Lap 23")
 3. **Check time delta** - Where does it increase (losing time)?
 4. **Zoom to problem areas** - Click-drag on the section
@@ -160,74 +182,61 @@ python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
 
 ### 1. Find Your Braking Points
 
-**Goal**: Understand where you brake at each corner
-
 1. Open interactive HTML
-2. Zoom into brake plot (red)
+2. Zoom into brake plot
 3. Note where brake spikes occur (track position %)
 4. Use these as reference points for next session
 
 ### 2. Improve Consistency
 
-**Goal**: Make sure you're doing the same thing every lap
-
-1. Extract telemetry from 5 laps
-2. Use position-based comparison to overlay all laps
-3. Look for variations in:
-   - Braking points (should be within 1% position)
-   - Minimum corner speed (should vary <5 km/h)
-   - Throttle application points
+1. Extract telemetry from a multi-lap session
+2. Use position-based comparison to overlay laps
+3. Look for variations in braking points, min corner speed, throttle application
 4. Focus on corners with most variation
 
 ### 3. Compare vs Faster Drivers
 
-**Goal**: Learn from aliens
-
-1. Download YouTube video of fast lap
-2. Extract their telemetry
+1. Download YouTube video of a fast lap into `videos/`
+2. Extract their telemetry with `python main.py`
 3. Extract your lap telemetry
-4. Compare using position-based tool
-5. Identify where they're different:
-   - Braking later?
-   - Carrying more speed?
-   - On throttle earlier?
+4. Compare using `plot_position_based_comparison()` (or merge CSVs carefully for cross-session work)
+5. Identify where they're different
 
 ### 4. Analyze Driving Style
 
-**Goal**: Understand your tendencies
-
-1. Check full throttle % in statistics (should be 55-70% depending on track)
-2. Look for trail braking (throttle overlay yellow = both pedals pressed)
-3. Check steering smoothness (smooth = confident, jagged = corrections)
+1. Check full throttle % in statistics
+2. Look for trail braking
+3. Check steering smoothness
 4. Analyze TC/ABS activation frequency
 
 ## Resolution Configuration
 
-### Default: 1280×720 (720p)
+ROI coordinates in `config/roi_config.yaml` are organized as **named profiles** (e.g. `my_ps5_1080p`). Pick the matching profile when `main.py` prompts you.
 
-ROI coordinates in `config/roi_config.yaml` are calibrated for 720p videos.
+### Scaling guidance (from a known base resolution)
 
-### Other Resolutions
-
-**1920×1080 (1080p)**: Multiply all coordinates by 1.5
-**2560×1440 (1440p)**: Multiply by 2.0
+**1920×1080 (1080p)**: Multiply 720p coordinates by 1.5  
+**2560×1440 (1440p)**: Multiply by 2.0  
 **3840×2160 (4K)**: Multiply by 3.0
 
 **To recalibrate:**
-1. Extract a frame: `python -c "import cv2; cap=cv2.VideoCapture('video.mp4'); ret,f=cap.read(); cv2.imwrite('frame.png',f)"`
-2. Open in image viewer with pixel coordinates (GIMP, Photoshop)
+1. Extract a frame:
+   ```bash
+   mkdir -p debug
+   python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); _,f=cap.read(); cv2.imwrite('debug/frame.png',f); cap.release()"
+   ```
+2. Open in an image viewer with pixel coordinates (GIMP, Photoshop)
 3. Locate HUD elements and measure coordinates
-4. Update `config/roi_config.yaml`
+4. Update (or add) a profile in `config/roi_config.yaml`
 
 ## Performance Expectations
 
 ### Processing Speed
 
-**Typical performance on modern CPU (M1/M2, recent Intel i7/i9):**
+Typical performance on a modern CPU:
 - ~5-10ms per frame
-- 30 FPS video = 100-200 FPS processing speed
+- 30 FPS video ≈ 100-200 FPS processing speed
 - 10-minute video processes in ~1-2 minutes
-- 30-minute video processes in ~5-8 minutes
 
 **OCR Performance:**
 - Template matching (lap numbers): ~2ms per frame
@@ -237,59 +246,48 @@ ROI coordinates in `config/roi_config.yaml` are calibrated for 720p videos.
 ### File Sizes
 
 - CSV: ~1-2MB per 10 minutes of video
-- Interactive HTML: ~4-5MB (includes Plotly library + data)
+- Interactive HTML: ~4-5MB
 - Position comparison HTML: ~500KB per lap comparison
 
 ## Tips & Best Practices
 
 ### Recording Tips
 
-1. **Keep HUD visible** - Tool requires default ACC HUD to be on screen
-2. **Stable camera** - Minimize camera shake (use cockpit/bumper view)
-3. **Good lighting** - Ensure HUD is clearly visible
-4. **Full laps** - Record complete laps for best results
-5. **High quality** - 1080p or higher recommended for OCR accuracy
+1. **Keep HUD visible**
+2. **Stable camera** (cockpit/bumper view)
+3. **Good lighting** so HUD is clear
+4. **Full laps** for best results
+5. **High quality** (1080p+) helps OCR
 
 ### Analysis Tips
 
-1. **Compare adjacent laps first** (22 vs 23, 23 vs 24) - easier to remember what changed
-2. **Use position percentages as reference** - Learn which % = which corner
-3. **Focus on one corner per session** - Don't try to fix everything at once
-4. **Look for patterns** - If you always lose time in the same section, that's your weak point
-5. **Share HTML files** - Send to coaches/teammates for feedback (they can zoom/analyze themselves)
-
-### Data Quality
-
-- **Full laps only**: Incomplete laps may have gaps
-- **Clean laps**: Avoid laps with incidents or off-track
-- **Multiple laps**: More data = better insights
-- **Consistent conditions**: Compare laps from similar track/weather conditions
+1. Compare adjacent laps first
+2. Use position percentages as corner references
+3. Focus on one corner per session
+4. Look for repeating weak sections
+5. Share HTML files with coaches/teammates
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed solutions to common issues.
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed solutions.
 
 **Quick fixes:**
-
-- **No data extracted**: Check ROI coordinates match your video resolution
-- **Wrong values**: Verify HUD is visible and not obscured
-- **No lap numbers**: Ensure lap indicator is visible in top-left of screen
+- **No data extracted**: Check ROI profile matches your video resolution
+- **Wrong values**: Verify HUD is visible
+- **No lap numbers**: Ensure lap indicator is visible
 - **No position data**: Configure `track_map` ROI and ensure minimap is visible
-- **Slow processing**: Normal for OCR - template matching is faster (requires calibration)
 
 ## Next Steps
 
-1. **Extract your first lap**: Run `python main.py`
-2. **Explore the HTML**: Open the interactive visualization
-3. **Compare laps**: Use position-based comparison
-4. **Analyze and improve**: Identify weak points and practice
-5. **Track progress**: Re-analyze after practice to measure improvement
-
-Remember: The goal isn't just to be faster - it's to understand WHY you're faster (or slower). This tool gives you the data to make informed improvements!
+1. Extract your first session: `python main.py`
+2. Explore the interactive HTML
+3. Run position-based comparison via the visualizer API
+4. Identify weak points and practice
+5. Re-analyze after practice to measure improvement
 
 ## Related Documentation
 
-- [FEATURES.md](FEATURES.md) - Detailed feature descriptions
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues and solutions
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Technical implementation details
+- [FEATURES.md](FEATURES.md) - Feature descriptions
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Technical details
 - [README.md](../README.md) - Project overview

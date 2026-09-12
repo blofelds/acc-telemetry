@@ -79,8 +79,8 @@ frame,time,lap_number,lap_time,track_position,speed,gear,throttle,brake,steering
 1. **`config/roi_config.yaml`**
    - Added `track_map` ROI configuration
 
-2. **`src/position_tracker.py`** (NEW)
-   - `PositionTracker` class implementing path-following algorithm
+2. **`src/position_tracker_v2.py`** (current; replaced earlier `position_tracker` drafts)
+   - `PositionTrackerV2` class implementing path-following algorithm
    - `extract_track_path()`: Extract white racing line from multiple frames
    - `detect_red_dot()`: Find red dot position on minimap
    - `calculate_position()`: Convert dot position to track percentage
@@ -92,7 +92,7 @@ frame,time,lap_number,lap_time,track_position,speed,gear,throttle,brake,steering
    - ROI dictionary now includes: `throttle`, `brake`, `steering`, `track_map`
 
 4. **`main.py`**
-   - Import `PositionTracker`
+   - Import `PositionTrackerV2`
    - Initialize position tracker
    - Extract track path from sampled frames at startup
    - Call `position_tracker.extract_position()` each frame
@@ -109,10 +109,10 @@ frame,time,lap_number,lap_time,track_position,speed,gear,throttle,brake,steering
 
 ### Test Script
 
-Run `test_position_tracking.py` to validate the implementation:
+Run `python tests/test_position_tracker_v2.py` to validate position tracking:
 
 ```bash
-python test_position_tracking.py
+python tests/test_position_tracker_v2.py
 ```
 
 **What it does**:
@@ -223,7 +223,7 @@ plt.savefig('position_vs_input.png')
 **Cause**: Track path extraction failed
 
 **Solution**:
-1. Run `test_position_tracking.py` to check path extraction
+1. Run `python tests/test_position_tracker_v2.py` to check path extraction behavior
 2. Verify `track_map` ROI captures the minimap correctly
 3. Check if white racing line is visible in `map_sample_frameXXXX.png` images
 4. Adjust HSV color ranges in `PositionTracker` if needed
@@ -294,5 +294,5 @@ Track position tracking is **fully implemented and integrated** into the ACC Tel
 ✅ Adds minimal performance overhead (~1ms per frame)  
 ✅ Includes debug tools for validation  
 
-**Next steps**: Run `python main.py` to extract telemetry with track position, or run `python test_position_tracking.py` to validate the feature.
+**Next steps**: Run `python main.py` to extract telemetry with track position, or run `python tests/test_position_tracker_v2.py` to validate related behavior.
 

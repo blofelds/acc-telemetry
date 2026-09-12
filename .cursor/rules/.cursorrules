@@ -1,0 +1,7 @@
+---
+description: Strictly bound agent activities to the local workspace directory
+globs: *
+---
+- You are strictly restricted to reading and modifying files inside this workspace repository directory (`acc-telemetry`).
+- NEVER inspect system paths, `/etc`, home directory files outside this repo, or `/tmp`.
+- Do not index or scan large binary files or output media in `data/output/`.

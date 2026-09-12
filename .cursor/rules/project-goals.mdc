@@ -127,7 +127,7 @@ This isn't just a toy project—it solves a genuine problem:
 1. ✅ Resolution dependency (solved: configurable ROI)
 2. ✅ Color changes during TC/ABS activation (solved: multi-color detection)
 3. ✅ Horizontal vs. vertical bar detection (solved: orientation parameter)
-4. ✅ Finding correct UI elements (solved: manual calibration + helper scripts)
+4. ✅ Finding correct UI elements (solved: manual ROI calibration)
 
 ## Measuring Success
 The user will know this project succeeds when they can:
