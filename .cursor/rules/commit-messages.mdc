@@ -1,0 +1,42 @@
+---
+description: Commit message style. Conventional Commits subjects and a body that explains why.
+alwaysApply: true
+---
+
+# Commit messages
+
+Write messages for a future reader and the reviewer. The diff shows what changed. The message should make the decision make sense months later.
+
+## Subject
+
+```
+type(scope): imperative description
+```
+
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`
+- Scope names the area (`readme`, `rules`, `comparison`, `web`, `position`)
+- Imperative, lowercase after the colon ("point", "stop", "add")
+- No trailing period
+- Keep the full subject under 72 characters
+
+## Body
+
+- Blank line after the subject
+- Wrap at 72 characters
+- Explain why. Say what was wrong before, and what to use instead if a file or command was removed
+- Skip the body only when the subject is the whole story, such as a typo fix
+
+## Example
+
+```
+docs(comparison): point lap overlay at the visualizer API
+
+compare_laps.py is gone. The overlay is
+InteractiveTelemetryVisualizer.plot_lap_comparison().
+
+The old CLI examples would send a reader to a file that does not
+exist. Position-based comparison remains the better view when
+track_position is present.
+```
+
+One logical change per commit. Pass the message with a HEREDOC so the blank line and wrapping are preserved.
