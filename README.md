@@ -21,16 +21,13 @@ This tool analyzes ACC gameplay videos frame-by-frame to extract:
 - **Speed** (km/h via OCR)
 - **Gear** (1-6 via OCR)
 - **Lap numbers** (via template matching)
-- **Track position** (0-100% via minimap analysis with Kalman filtering) 🆕
+- **Track position** (0-100% via minimap analysis) 🆕
 
 And generates:
 - CSV data files for analysis
 - **Interactive HTML visualizations** with zoom, pan, and hover tooltips
 - **Position-based lap comparison** - see exactly where you gain/lose time 🆕
-- High-resolution graphs with multiple detail levels
-- Braking zone analysis
-- Throttle application analysis
-- Time-based lap comparison
+- Multi-lap overlays via the visualizer API
 - Lap statistics
 
 ## 🚀 Quick Start
@@ -41,19 +38,34 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Place your gameplay video as input_video.mp4
+# 2. Place your gameplay video in videos/
+mkdir -p videos
+cp /path/to/your/acc_video.mp4 videos/
 
-# 3. Extract telemetry (generates interactive HTML + CSV)
+# 3. Extract telemetry (interactive video + ROI profile selection)
 python main.py
+```
 
-# 4. Generate detailed static analysis (optional)
-python generate_detailed_analysis.py
+`main.py` prompts you to pick a video from `videos/` and an ROI profile from `config/roi_config.yaml`, then writes CSV + interactive HTML to `data/output/`.
 
-# 5. Compare laps by time (optional - separate lap files)
-python compare_laps.py lap1.csv lap2.csv
+### Optional: Web API
 
-# 6. Compare laps by position (optional - single file with multiple laps)
-python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+```bash
+python run_server.py
+# API docs: http://localhost:8000/docs
+```
+
+### Optional: Position-based lap comparison
+
+After extraction, generate a position-aligned comparison from the CSV:
+
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
 ```
 
 ## 📊 Output Examples
@@ -93,120 +105,89 @@ Features:
 - Direct comparison of driving technique
 
 **Usage**:
-```bash
-python compare_laps_by_position.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
 ```
 
 **Output**: `lap_comparison_position_YYYYMMDD_HHMMSS.html` (open in browser)
-
----
-
-### Detailed Static Analysis
-The tool also generates **4 types of detailed static visualizations** (all at 300 DPI for printing/annotation):
-
-### 1. Comprehensive Overview
-6-panel layout with:
-- Complete lap overview
-- Throttle detail with reference lines
-- Brake detail with statistics
-- Steering detail (color-coded)
-- Pedal overlay (shows when both pedals are pressed)
-- Complete lap statistics
-
-![Example Overview](docs/example_overview.png)
-
-### 2. Zoomed Sections
-Your lap divided into sections (default: 6) for detailed analysis of specific areas.
-
-### 3. Braking Zones Analysis
-Every braking event isolated with:
-- Context before/after
-- Duration, max brake, average brake
-- Steering overlay to see trail braking
-
-### 4. Throttle Application Analysis
-3-panel analysis showing:
-- Throttle with color gradient (rate of change)
-- Throttle vs steering correlation
-- Throttle application rate (smoothness)
 
 ## 📁 Project Structure
 
 ```
 acc-telemetry/
-├── main.py                           # Main telemetry extraction
-├── compare_laps.py                   # Time-based lap comparison
-├── compare_laps_by_position.py       # Position-based lap comparison 🆕
-├── generate_detailed_analysis.py     # Generate detailed static graphs
+├── main.py                           # CLI telemetry extraction
+├── run_server.py                     # FastAPI web backend entrypoint
 ├── config/
-│   └── roi_config.yaml              # ROI coordinates (resolution-specific)
+│   └── roi_config.yaml              # Named ROI profiles (resolution-specific)
 ├── src/
 │   ├── video_processor.py           # Video frame extraction
 │   ├── telemetry_extractor.py       # Computer vision analysis
-│   ├── lap_detector.py              # Lap number detection (OCR/template matching)
-│   ├── position_tracker_v2.py       # Track position tracking (minimap analysis) 🆕
+│   ├── lap_detector.py              # Lap number / speed / gear detection
+│   ├── position_tracker_v2.py       # Track position tracking (minimap) 🆕
+│   ├── template_matcher.py          # Digit template matching
 │   ├── interactive_visualizer.py    # Interactive Plotly visualizations
-│   ├── visualizer.py                # Basic matplotlib visualization
-│   └── detailed_visualizer.py       # Detailed multi-scale visualization
+│   └── web/                         # FastAPI backend (jobs, videos, telemetry)
+├── tests/
+│   ├── test_position_smoothing.py
+│   └── test_position_tracker_v2.py
+├── videos/                          # Place input .mp4 files here
 ├── data/
 │   └── output/                      # Generated CSV and HTML files
-└── docs/
-    ├── POSITION_BASED_LAP_COMPARISON.md  # Position-based comparison guide 🆕
-    ├── INTERACTIVE_VISUALIZATION_GUIDE.md # Interactive visualization guide
-    ├── DETAILED_ANALYSIS_GUIDE.md   # Detailed static visualizations guide
-    ├── TRACK_POSITION_TRACKING.md   # Track position tracking guide 🆕
-    └── PROJECT_SUMMARY.md           # Technical overview
+└── docs/                            # Guides and technical docs
 ```
 
 ## 🎮 Supported Setup
 
-Currently configured for:
-- **Game**: Assetto Corsa Competizione (Console)
-- **Resolution**: 1280×720 (720p)
-- **HUD**: Default ACC HUD with visible throttle/brake bars
+Currently configured via named profiles in `config/roi_config.yaml` (e.g. PS5 1080p). ROI coordinates are resolution- and HUD-dependent.
 
-**Other resolutions?** You'll need to recalibrate ROI coordinates using the helper scripts (see docs).
+**Other resolutions?** Recalibrate ROI coordinates (see [USER_GUIDE.md](docs/USER_GUIDE.md) Resolution Configuration).
 
-## 🔧 Calibration Helper Scripts
+### 🔧 Calibrating ROIs
 
-If your video resolution differs:
-- `find_throttle_brake_bars.py` - Find ROI coordinates for your resolution
-- `visualize_rois.py` - Verify ROI placement
-- `debug_braking.py` - Debug brake detection issues
+1. Extract a test frame:
+   ```bash
+   python -c "import cv2; cap=cv2.VideoCapture('videos/your_video.mp4'); _,f=cap.read(); cv2.imwrite('debug/frame.png',f); cap.release()"
+   ```
+2. Open `debug/frame.png` in an image viewer that shows pixel coordinates
+3. Measure HUD element positions and update a profile in `config/roi_config.yaml`
 
 ## 📖 Documentation
 
 ### User Guides
-- **[POSITION_BASED_LAP_COMPARISON.md](docs/POSITION_BASED_LAP_COMPARISON.md)** - Position-based lap comparison (where you gain/lose time) 🆕 ⭐ START HERE
-- **[INTERACTIVE_VISUALIZATION_GUIDE.md](docs/INTERACTIVE_VISUALIZATION_GUIDE.md)** - Interactive HTML graphs and basic lap comparison
-- **[DETAILED_ANALYSIS_GUIDE.md](docs/DETAILED_ANALYSIS_GUIDE.md)** - Detailed static visualizations guide
+- **[USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete usage guide ⭐ START HERE
+- **[POSITION_BASED_LAP_COMPARISON.md](docs/POSITION_BASED_LAP_COMPARISON.md)** - Position-based lap comparison (where you gain/lose time) 🆕
+- **[INTERACTIVE_VISUALIZATION_GUIDE.md](docs/INTERACTIVE_VISUALIZATION_GUIDE.md)** - Interactive HTML graphs and lap comparison
+- **[QUICKSTART_WEB.md](QUICKSTART_WEB.md)** - Web API quick start
 
 ### Technical Guides
-- **[KALMAN_FILTERING.md](docs/KALMAN_FILTERING.md)** - Kalman filtering for smooth position tracking 🆕
-- **[TRACK_POSITION_TRACKING.md](docs/TRACK_POSITION_TRACKING.md)** - How minimap-based position tracking works
-- **[PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)** - Technical overview and architecture
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design
+- **[TRACK_POSITION_TRACKING.md](docs/TRACK_POSITION_TRACKING.md)** - How minimap-based position tracking works 🆕
+- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues
+- **[docs/README.md](docs/README.md)** - Full documentation index
 
 ## 🛠️ Technical Stack
 
 - **Python 3.10+**
 - **OpenCV** - Video processing and computer vision
-- **NumPy** - Array operations
-- **Pandas** - Data handling and CSV export
-- **Plotly** - Interactive web-based visualizations
-- **Matplotlib** - Static high-resolution graphs
-- **FilterPy** - Kalman filtering for position tracking 🆕
+- **NumPy / Pandas** - Array ops and CSV export
+- **Plotly** - Interactive HTML visualizations
 - **PyYAML** - Configuration
+- **tesserocr / pytesseract** - OCR for speed, gear, lap times
+- **FastAPI** - Optional web API (`src/web/`)
 
 ## 💡 How It Works
 
 1. **Video Processing**: Extract frames from gameplay video
-2. **ROI Extraction**: Crop specific regions (throttle bar, brake bar, steering indicator)
-3. **Color Detection**: Use HSV color space to detect:
-   - Green/yellow pixels (throttle - changes with TC activation)
-   - Red/orange pixels (brake - changes with ABS activation)
-   - White pixels (steering indicator dot)
-4. **Measurement**: Calculate percentage of bar filled or position of indicator
-5. **Export**: Generate CSV data and high-resolution visualizations
+2. **ROI Extraction**: Crop HUD regions (throttle, brake, steering, minimap, etc.)
+3. **Color Detection**: HSV masks for bar colors and steering indicator
+4. **OCR / Templates**: Read speed, gear, and lap numbers
+5. **Position Tracking**: Follow the red dot on the minimap racing line
+6. **Export**: CSV + interactive HTML
 
 ## 🎯 Use Cases
 
@@ -236,9 +217,9 @@ If your video resolution differs:
 - Throttle: Green → Yellow when TC active
 - Brake: Red → Orange when ABS active
 
-### High-Resolution Output
-- 300 DPI graphs for detailed analysis
-- Suitable for printing and annotation
+### Interactive Output
+- Browser-based Plotly graphs with zoom/pan/hover
+- Suitable for sharing and detailed analysis
 - Frame-by-frame accuracy
 
 ### Comprehensive Statistics
@@ -247,13 +228,6 @@ If your video resolution differs:
 - Full throttle percentage and time
 - Braking event count and duration
 - Steering angle statistics
-
-### Intelligent Analysis
-- Automatic braking zone detection
-- Context frames before/after events
-- Trail braking identification
-- Throttle smoothness analysis
-- Pedal overlap detection (both pedals pressed)
 
 ## 🐛 Known Limitations
 
@@ -264,25 +238,24 @@ If your video resolution differs:
 
 ## 🚧 Roadmap
 
-### Phase 2: Enhanced Features (Planned)
+### Enhanced Features
 - [ ] Automatic ROI detection (no manual calibration needed)
-- [ ] Lap time extraction using OCR
-- [ ] Gear detection
 - [ ] Batch processing multiple videos
 - [ ] Resolution-independent ROI scaling
 
-### Phase 3: Advanced Analysis (In Progress)
-- [x] Multi-lap overlay comparison (✅ COMPLETE - see `compare_laps.py`)
+### Advanced Analysis
+- [x] Multi-lap overlay comparison (✅ COMPLETE)
 - [x] Interactive zoom/pan visualization (✅ COMPLETE - Plotly integration)
 - [x] Track position tracking (✅ COMPLETE - minimap analysis)
-- [x] Position-based lap comparison (✅ COMPLETE - see `compare_laps_by_position.py`) 🆕
+- [x] Position-based lap comparison (✅ COMPLETE) 🆕
 - [x] Time delta analysis (✅ COMPLETE - integrated in position comparison) 🆕
 - [ ] Track map overlay visualization
 - [ ] Sector-by-sector analysis with automatic sector detection
 - [ ] AI-powered driving feedback
 
-### Phase 4: Community Platform (Aspirational)
-- [ ] Web UI for video upload
+### Community Platform
+- [x] Web API for processing and telemetry (✅ COMPLETE)
+- [ ] Full web UI for video upload
 - [ ] Cloud processing
 - [ ] Shared telemetry database
 - [ ] YouTube integration
@@ -307,8 +280,9 @@ Built by a console sim racer frustrated by the lack of telemetry tools. Inspired
 ## 📬 Questions?
 
 Check the documentation:
-- **User guide**: [DETAILED_ANALYSIS_GUIDE.md](DETAILED_ANALYSIS_GUIDE.md)
-- **Technical details**: [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)
+- **User guide**: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+- **Technical details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **Full index**: [docs/README.md](docs/README.md)
 
 ---
 

@@ -233,7 +233,7 @@ Position tracking extracts the car's location around the track (0-100%) from the
 
 ### Phase 1: Time-Based Lap Comparison
 - **Approach**: Overlay laps by time (0s, 1s, 2s, etc.)
-- **Tool**: `compare_laps.py` - still available for separate videos
+- **API**: `InteractiveTelemetryVisualizer.plot_lap_comparison()`
 - **Problem**: Out of sync after first difference
   - If you brake earlier in Lap 1, rest of lap is offset
   - Can't compare corner entry technique directly
@@ -241,6 +241,7 @@ Position tracking extracts the car's location around the track (0-100%) from the
 
 ### Phase 2: Position-Based Comparison - CURRENT
 - **Breakthrough**: Align laps by track position instead of time
+- **API**: `InteractiveTelemetryVisualizer.plot_position_based_comparison()`
 - **Approach**:
   1. Resample both laps at fixed position intervals (every 0.5%)
   2. Compare telemetry at same track positions

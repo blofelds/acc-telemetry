@@ -46,17 +46,22 @@ To generate this data, run `main.py` with track position tracking enabled (requi
 
 ### Basic Usage
 
-```bash
-# Compare all laps in a telemetry file
-python compare_laps_by_position.py data/output/telemetry_20251024_163152.csv
+```python
+import pandas as pd
+from src.interactive_visualizer import InteractiveTelemetryVisualizer
+
+viz = InteractiveTelemetryVisualizer()
+df = pd.read_csv('data/output/telemetry_YYYYMMDD_HHMMSS.csv')
+viz.plot_position_based_comparison(df)
 ```
 
-The tool will:
+The visualizer will:
 1. Load the CSV and validate it has position data
-2. Show a summary of available laps
-3. Generate all pairwise comparisons (Lap 1 vs 2, 1 vs 3, 2 vs 3, etc.)
-4. Create an interactive HTML file
-5. Open it in your browser automatically
+2. Generate pairwise comparisons between laps
+3. Create an interactive HTML file under `data/output/`
+4. Return the path to the saved file
+
+> **Note:** The former standalone script `compare_laps_by_position.py` has been removed. Use `InteractiveTelemetryVisualizer.plot_position_based_comparison()` as shown above (or the web API `POST /telemetry/compare`).
 
 ### Output
 
@@ -153,8 +158,8 @@ Use the dropdown to compare different lap combinations:
 ### Scenario: Lap 3 is 2 seconds slower than Lap 2
 
 **Step 1: Load comparison**
-```bash
-python compare_laps_by_position.py data/output/telemetry.csv
+```python
+viz.plot_position_based_comparison(df)  # then open the generated HTML
 ```
 Select "Lap 2 vs Lap 3" from dropdown.
 
@@ -234,9 +239,9 @@ Used for accurate time calculations.
 
 ## Comparison: Time-Based vs Position-Based
 
-### Time-Based Comparison (`compare_laps.py`)
+### Time-Based Comparison (`plot_lap_comparison()`)
 **Use when:**
-- Comparing laps from different sessions (separate videos)
+- Comparing laps from the same session CSV by elapsed time
 - Analyzing overall consistency over time
 - Looking at lap time trends
 
@@ -245,7 +250,7 @@ Used for accurate time calculations.
 - Out of sync after first difference
 - Hard to identify specific problem corners
 
-### Position-Based Comparison (`compare_laps_by_position.py`)
+### Position-Based Comparison (`plot_position_based_comparison()`)
 **Use when:**
 - Analyzing WHERE on track you gain/lose time
 - Comparing driving technique at specific corners
@@ -254,7 +259,7 @@ Used for accurate time calculations.
 
 **Requires:**
 - Track position data (minimap tracking)
-- Multiple laps in single session
+- Multiple laps in a single session CSV
 
 ## Troubleshooting
 
