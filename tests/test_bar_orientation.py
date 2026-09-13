@@ -70,6 +70,67 @@ class TestBarOrientation(unittest.TestCase):
         self.assertEqual(up['brake'], 0.0)
         self.assertEqual(up['steering'], 0.0)
 
+    def test_vertical_bar_ignores_color_that_is_not_anchored_at_the_bottom(self):
+        """Car interior showing through an empty bar must not read as fill.
+
+        The empty pedal is transparent. A red dashboard glyph in the middle
+        of the crop used to set the fill line, which stuck brake near 64%.
+        """
+        height, width = 80, 8
+        brake = np.zeros((height, width, 3), dtype=np.uint8)
+        brake[26:40, :] = (0, 0, 255)
+        extractor = TelemetryExtractor({
+            'throttle': {'orientation': 'vertical'},
+            'brake': {'orientation': 'vertical'},
+        })
+
+        reading = extractor.extract_frame_telemetry({
+            'throttle': np.zeros_like(brake),
+            'brake': brake,
+        })
+
+        self.assertEqual(reading['brake'], 0.0)
+
+    def test_vertical_fill_stops_at_a_gap_above_the_pedal(self):
+        """A blob above the fill must not raise the reading.
+
+        A one-row hole inside the fill is compression noise and still
+        counts. A larger gap is the end of the pedal.
+        """
+        height, width = 80, 8
+        brake = np.zeros((height, width, 3), dtype=np.uint8)
+        brake[48:, :] = (0, 0, 255)
+        brake[50, :] = 0
+        brake[20:28, :] = (0, 0, 255)
+        extractor = TelemetryExtractor({
+            'throttle': {'orientation': 'vertical'},
+            'brake': {'orientation': 'vertical'},
+        })
+
+        reading = extractor.extract_frame_telemetry({
+            'throttle': np.zeros_like(brake),
+            'brake': brake,
+        })
+
+        self.assertAlmostEqual(reading['brake'], 40.0)
+
+    def test_vertical_fill_ignores_a_thin_background_streak(self):
+        """A single colored column is interior texture, not the pedal."""
+        height, width = 80, 8
+        brake = np.zeros((height, width, 3), dtype=np.uint8)
+        brake[:, 0] = (0, 0, 255)
+        extractor = TelemetryExtractor({
+            'throttle': {'orientation': 'vertical'},
+            'brake': {'orientation': 'vertical'},
+        })
+
+        reading = extractor.extract_frame_telemetry({
+            'throttle': np.zeros_like(brake),
+            'brake': brake,
+        })
+
+        self.assertEqual(reading['brake'], 0.0)
+
 
     def test_missing_steering_roi_is_not_required(self):
         profile = {

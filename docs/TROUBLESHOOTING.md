@@ -7,6 +7,7 @@ This document consolidates solutions to common issues, bug fixes that were imple
 | Symptom | Likely Cause | Quick Fix |
 |---------|--------------|-----------|
 | All values 0% or 100% | ROI coordinates wrong, or bar orientation wrong | Check the profile, and `orientation` (`horizontal` vs `vertical`) |
+| Brake stuck near one value | Car interior showing through the empty bar | Vertical bars count only fill anchored at the bottom |
 | No lap numbers detected | ROI doesn't capture lap indicator | Verify lap_number ROI coordinates |
 | Lap numbers oscillating | (Fixed) Temporal smoothing issue | Update to latest version |
 | False throttle during braking | (Fixed) Pixel threshold too low | Update to latest version |
@@ -63,6 +64,19 @@ The bar fills bottom to top, but the profile does not set `orientation: vertical
 
 **Solution:**
 Set `orientation: vertical` on the throttle and brake entries. Select `assetto_corsa_1080p` for Assetto Corsa original. Do not use an ACC profile for that HUD.
+
+### Problem: Brake stuck near a fixed percentage
+
+**Symptoms:**
+- Brake sits near the same value for long stretches (for example about 64%)
+- That value does not match the pedal on screen
+- It changes when the camera pitches, or differs between cars
+
+**Root Cause:**
+The empty bar is transparent. The car interior shows through the ROI, and that background moves as the car brakes and corners. Different cars show different interiors. Taking the topmost colored pixel treats that background as the fill line.
+
+**Solution:**
+Use `orientation: vertical`. The extractor counts only a run of color anchored at the bottom of the bar, and ignores a matching blob above that. If the cabin itself fills the bottom of the crop, tighten the ROI so it covers the bar and as little of the interior as possible.
 
 ## Lap Detection Issues
 

@@ -47,11 +47,13 @@ roi = frame[y:y+height, x:x+width]
 5. Calculate median filled width
 6. Convert to percentage: `(filled_width / total_width) * 100`
 
-### Vertical Bars (Alternative)
-1. Sample middle columns
-2. Find topmost filled pixel (bars fill from bottom)
-3. Calculate filled height from bottom
-4. Use median to handle outliers
+### Vertical Bars
+The empty bar is transparent, so the car interior can show through and move as the camera pitches. Only color anchored at the bottom of the ROI is the pedal.
+
+1. A row counts when most of its width is the bar color
+2. Walk up from the bottom
+3. Stop at a gap larger than a couple of pixels
+4. Convert that height to a percentage
 
 ### Multi-Color Detection Pattern
 Bars change color during TC/ABS activation. Handle by combining masks:

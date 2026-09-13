@@ -126,26 +126,7 @@ class TelemetryExtractor:
         height, width = mask.shape
         
         if orientation == 'vertical':
-            # For vertical bars, fill goes from bottom to top
-            # Sample middle columns to avoid edge artifacts
-            middle_cols = mask[:, width//3:2*width//3]
-            
-            # Find the topmost filled pixel for each column (bar fills from bottom)
-            filled_heights = []
-            for col_idx in range(middle_cols.shape[1]):
-                col = middle_cols[:, col_idx]
-                non_zero_rows = np.where(col > 0)[0]
-                if len(non_zero_rows) > 0:
-                    # Calculate filled height from bottom
-                    filled_height = height - non_zero_rows[0]
-                    filled_heights.append(filled_height)
-            
-            if not filled_heights:
-                return 0.0
-            
-            # Use median to avoid outliers
-            filled_height = np.median(filled_heights)
-            percentage = (filled_height / height) * 100.0
+            percentage = TelemetryExtractor._vertical_fill_percentage(mask)
             
         else:  # horizontal
             # Sample middle 80% of rows (10% to 90%) to avoid edge artifacts while capturing
@@ -207,7 +188,54 @@ class TelemetryExtractor:
             percentage = (filled_width / width) * 100.0
         
         return min(100.0, max(0.0, percentage))
-    
+
+    @staticmethod
+    def _vertical_fill_percentage(mask: np.ndarray) -> float:
+        """
+        Measure a vertical bar that fills from the bottom.
+
+        The empty bar is transparent, so the car interior shows through.
+        That background changes with the car and slides around as the
+        camera pitches in braking and corners. A matching blob that is
+        not anchored to the bottom of the ROI is not the pedal.
+
+        A row counts only when most of its width is colored. The fill is
+        a solid column; a dashboard glyph usually is not. A one or two
+        pixel hole (compression, or the interior cutting across the bar)
+        does not end the run.
+
+        Args:
+            mask: Binary mask of the bar color (255 = colored).
+
+        Returns:
+            Fill percentage from 0.0 to 100.0.
+        """
+        height, width = mask.shape
+        if height == 0 or width == 0:
+            return 0.0
+
+        # Majority of the row, so a thin streak of interior color does
+        # not start a fill. At least one pixel on a 1px-wide crop.
+        min_colored = max(1, int(np.ceil(width * 0.5)))
+        row_is_fill = np.count_nonzero(mask, axis=1) >= min_colored
+
+        # Walk up from the bottom. Stop at a gap bigger than the hole
+        # we are willing to treat as noise.
+        gap_tolerance = 2
+        gap = 0
+        top = height
+        for row in range(height - 1, -1, -1):
+            if row_is_fill[row]:
+                top = row
+                gap = 0
+            else:
+                gap += 1
+                if gap > gap_tolerance:
+                    break
+
+        filled_height = height - top
+        return (filled_height / height) * 100.0
+
     @staticmethod
     def extract_steering_position(roi_image: np.ndarray) -> float:
         """
