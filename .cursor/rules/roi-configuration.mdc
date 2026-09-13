@@ -36,7 +36,7 @@ twitch_720p:
 Each throttle and brake ROI may set `orientation`:
 
 - `horizontal` (default): bar fills left to right. ACC profiles use this.
-- `vertical`: bar fills from the bottom. Assetto Corsa original pedal bars use this.
+- `vertical`: bar fills from the bottom. Assetto Corsa original pedal bars use this. The empty bar is transparent, so the car interior shows through and moves. Only color anchored at the bottom of the ROI counts as fill.
 
 Omit the key and the extractor treats the bar as horizontal, so older ACC profiles still work.
 
