@@ -145,7 +145,7 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
    - Computer vision core: analyzes ROI images using HSV color space
    - `extract_bar_percentage()`: Measures throttle/brake bars (green, yellow, red, orange detection)
    - `extract_steering_position()`: Finds white dot position on steering indicator
-   - Supports both horizontal and vertical bar orientations
+   - Bar orientation comes from the ROI profile (`orientation: horizontal` by default; Assetto Corsa original uses `vertical`)
    - Handles color changes when TC/ABS activate (green→yellow, red→orange)
 
 3. **[lap_detector.py](src/lap_detector.py)** - LapDetector class

@@ -179,7 +179,11 @@ def main():
     # but select_profile returns the dict.
     
     processor = VideoProcessor(VIDEO_PATH, roi_config)
-    extractor = TelemetryExtractor()
+    extractor = TelemetryExtractor(roi_config)
+    print(
+        f"   Bar orientation: throttle={extractor.throttle_orientation}, "
+        f"brake={extractor.brake_orientation}"
+    )
     
     # Use lap_number_training ROI if available (more accurate for some videos)
     lap_roi_config = roi_config.copy()

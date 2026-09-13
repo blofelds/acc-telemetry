@@ -56,6 +56,30 @@ class VideoProcessor:
         roi = self.roi_config[roi_name]
         x, y, w, h = roi['x'], roi['y'], roi['width'], roi['height']
         return frame[y:y+h, x:x+w]
+
+    def frame_rois(self, frame: np.ndarray) -> Dict[str, np.ndarray]:
+        """
+        Crop the HUD regions this profile defines.
+
+        Throttle and brake are required. Steering and the track map are
+        omitted when the profile does not include them. Assetto Corsa
+        original has neither on screen.
+
+        Args:
+            frame: Full video frame
+
+        Returns:
+            Mapping of ROI name to cropped image
+        """
+        roi_dict = {
+            'throttle': self.extract_roi(frame, 'throttle'),
+            'brake': self.extract_roi(frame, 'brake'),
+        }
+        if 'steering' in self.roi_config:
+            roi_dict['steering'] = self.extract_roi(frame, 'steering')
+        if 'track_map' in self.roi_config:
+            roi_dict['track_map'] = self.extract_roi(frame, 'track_map')
+        return roi_dict
     
     def process_frames(self) -> Generator[Tuple[int, float, Dict[str, np.ndarray]], None, None]:
         """
@@ -63,7 +87,8 @@ class VideoProcessor:
         
         Yields:
             Tuple of (frame_number, timestamp, roi_dict)
-            where roi_dict contains {'throttle': roi_img, 'brake': roi_img, 'steering': roi_img, 'track_map': roi_img}
+            where roi_dict contains cropped images for the ROIs in this profile
+            (throttle and brake always; steering and track_map when configured)
         """
         if self.cap is None:
             raise RuntimeError("Video not opened. Call open_video() first.")
@@ -81,16 +106,7 @@ class VideoProcessor:
             
             timestamp = frame_num / self.fps
             
-            # Extract all ROIs
-            roi_dict = {
-                'throttle': self.extract_roi(frame, 'throttle'),
-                'brake': self.extract_roi(frame, 'brake'),
-                'steering': self.extract_roi(frame, 'steering')
-            }
-            
-            # Add track_map ROI if available in config
-            if 'track_map' in self.roi_config:
-                roi_dict['track_map'] = self.extract_roi(frame, 'track_map')
+            roi_dict = self.frame_rois(frame)
             
             yield frame_num, timestamp, roi_dict
             frame_num += 1
