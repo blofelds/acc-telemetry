@@ -8,6 +8,7 @@ This document consolidates solutions to common issues, bug fixes that were imple
 |---------|--------------|-----------|
 | All values 0% or 100% | ROI coordinates wrong, or bar orientation wrong | Check the profile, and `orientation` (`horizontal` vs `vertical`) |
 | Brake stuck near one value | Car interior showing through the empty bar | Vertical bars count only fill anchored at the bottom |
+| Speed drops for many frames | OCR dropped or merged a leading digit | A jump a car cannot make is ignored |
 | No lap numbers detected | ROI doesn't capture lap indicator | Verify lap_number ROI coordinates |
 | Lap numbers oscillating | (Fixed) Temporal smoothing issue | Update to latest version |
 | False throttle during braking | (Fixed) Pixel threshold too low | Update to latest version |
@@ -77,6 +78,19 @@ The empty bar is transparent. The car interior shows through the ROI, and that b
 
 **Solution:**
 Use `orientation: vertical`. The extractor counts only a run of color anchored at the bottom of the bar, and ignores a matching blob above that. If the cabin itself fills the bottom of the crop, tighten the ROI so it covers the bar and as little of the interior as possible.
+
+### Problem: Speed drops for many frames
+
+**Symptoms:**
+- Speed falls by about 100 km/h and stays there for a second or more
+- The HUD still shows a three-digit number, often starting with 1 (113 shown, trace reads 13)
+- It recovers when the number no longer starts with 1
+
+**Root Cause:**
+The HUD font draws 1 as a narrow stroke. OCR drops that leading digit, so 113 becomes 13 and 114 becomes 4. A 15-frame median then holds the wrong value for the whole stretch.
+
+**Solution:**
+A reading that jumps further than a car can change in one frame is ignored, and the last plausible speed is kept. A missing leading digit, or a reading that is only a small fraction of the last speed, is never promoted just because it repeats. A real crash, which is neither of those, is accepted after it repeats for a few frames. A real slowdown still tracks, because it steps through speeds the jump check allows.
 
 ## Lap Detection Issues
 
