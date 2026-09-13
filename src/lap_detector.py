@@ -67,6 +67,18 @@ class LapDetector:
         self._last_valid_gear: Optional[int] = None
         self._lap_number_history: list = []  # Track recent detections for stability
         self._speed_history: list = []  # Track recent speed detections for stability
+        # A car cannot change speed by this much in one frame. Larger jumps
+        # are OCR (a dropped leading digit reads 113 as 13), not the car.
+        self._max_speed_jump: int = 25
+        # Consecutive implausible readings that agree with each other before
+        # we treat them as a real change (a crash), not a one-frame miss.
+        self._speed_regime_frames: int = 8
+        # A reading below this fraction of the last speed is a collapsed OCR
+        # result (168 read as 10), not a crash. A real stop steps through
+        # speeds the jump check can follow.
+        self._min_crash_fraction: float = 0.2
+        self._pending_speed: Optional[int] = None
+        self._pending_speed_count: int = 0
         self._gear_history: list = []  # Track recent gear detections for stability
         self._history_size: int = 15  # Number of frames to track (increased for better OCR stability)
         
@@ -414,8 +426,9 @@ class LapDetector:
         """
         Extract current speed (km/h) from the HUD speed display.
         
-        Uses direct OCR on raw ROI (no preprocessing overhead).
-        The speed appears as white digits on a dark background in the bottom-right corner.
+        Uses direct OCR on the raw speed ROI. A reading that jumps further
+        than a car can change in one frame is ignored, so a dropped leading
+        digit (113 read as 13) does not stay on the trace.
         
         Args:
             frame: Full video frame (BGR format)
@@ -460,23 +473,124 @@ class LapDetector:
         except Exception as e:
             speed = None
         
-        if speed is not None:
-            # Validate: speed should be reasonable (0-400 km/h for ACC)
-            if 0 <= speed <= 400:
-                # Add to history for temporal smoothing
-                self._speed_history.append(speed)
-                if len(self._speed_history) > self._history_size:
-                    self._speed_history.pop(0)
-                
-                # Use median filtering to smooth out OCR noise
-                smoothed_speed = self._get_smoothed_speed()
-                
-                if smoothed_speed is not None:
-                    self._last_valid_speed = smoothed_speed
-                    return smoothed_speed
-        
-        # Return last known good value
+        return self._accept_speed_reading(speed)
+
+    def _accept_speed_reading(self, speed: Optional[int]) -> Optional[int]:
+        """
+        Keep a parsed speed only if a car could have reached it this frame.
+
+        OCR on the HUD font drops or merges a leading 1, so 113 becomes 13
+        and 168 becomes 10. The 15-frame median then holds that drop for
+        dozens of frames. A jump larger than ``_max_speed_jump`` is ignored
+        and the last plausible speed is kept.
+
+        A repeated jump is a real change (a wall, a reset) only when it is
+        not the tail of a recent speed and not a small fraction of it.
+        After ``_speed_regime_frames`` samples that agree with each other,
+        that new speed is accepted.
+        """
+        if speed is None or not (0 <= speed <= 400):
+            self._pending_speed = None
+            self._pending_speed_count = 0
+            return self._last_valid_speed
+
+        if (
+            self._last_valid_speed is not None
+            and abs(speed - self._last_valid_speed) > self._max_speed_jump
+        ):
+            if self._is_implausible_collapse(speed):
+                self._pending_speed = None
+                self._pending_speed_count = 0
+                return self._last_valid_speed
+
+            if (
+                self._pending_speed is not None
+                and abs(speed - self._pending_speed) <= self._max_speed_jump
+            ):
+                self._pending_speed_count += 1
+            else:
+                self._pending_speed = speed
+                self._pending_speed_count = 1
+
+            if self._pending_speed_count < self._speed_regime_frames:
+                return self._last_valid_speed
+
+            self._speed_history = [speed]
+            self._last_valid_speed = speed
+            self._pending_speed = None
+            self._pending_speed_count = 0
+            return speed
+
+        self._pending_speed = None
+        self._pending_speed_count = 0
+        self._speed_history.append(speed)
+        if len(self._speed_history) > self._history_size:
+            self._speed_history.pop(0)
+
+        smoothed_speed = self._get_smoothed_speed()
+        if smoothed_speed is not None:
+            self._last_valid_speed = smoothed_speed
+            return smoothed_speed
         return self._last_valid_speed
+
+    def _is_implausible_collapse(self, candidate: int) -> bool:
+        """
+        True when a large jump is a broken OCR read, not a new speed.
+
+        The HUD font's 1 is a thin stroke. OCR drops it (113 read as 13)
+        or merges it into the next digit (168 read as 10). Either way the
+        wrong number repeats for as long as the display stays in that
+        range, so it must not be promoted just because it is stable.
+        """
+        parents = list(self._speed_history)
+        if self._last_valid_speed is not None:
+            parents.append(self._last_valid_speed)
+
+        for parent in parents:
+            if self._is_dropped_leading_digits(parent, candidate):
+                return True
+            restored = self._with_leading_one(candidate)
+            if (
+                restored is not None
+                and abs(restored - parent) <= self._max_speed_jump
+            ):
+                return True
+
+        if (
+            self._last_valid_speed is not None
+            and self._last_valid_speed >= 50
+            and candidate < self._last_valid_speed * self._min_crash_fraction
+        ):
+            return True
+        return False
+
+    @staticmethod
+    def _with_leading_one(candidate: int) -> Optional[int]:
+        """The speed OCR would have read if it had kept a leading 1."""
+        if candidate < 0:
+            return None
+        restored = int("1" + str(candidate))
+        if restored > 400:
+            return None
+        return restored
+
+    @staticmethod
+    def _is_dropped_leading_digits(last: int, candidate: int) -> bool:
+        """
+        True when OCR kept only the tail of the last good speed.
+
+        113 read as 13, or 114 read as 4, is a missing leading digit.
+        Those readings stay wrong for as long as the display starts
+        with 1, so they must not be promoted to a new speed.
+        """
+        if last < 10 or candidate < 0:
+            return False
+        last_text = str(last)
+        candidate_text = str(candidate)
+        return (
+            len(candidate_text) < len(last_text)
+            and last_text.endswith(candidate_text)
+        )
     
     def _get_smoothed_speed(self) -> Optional[int]:
         """
