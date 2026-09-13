@@ -215,7 +215,7 @@ ROI coordinates in `config/roi_config.yaml` are organized as **named profiles**.
 
 Shipped profiles include `my_ps5_1080p`, `assetto_corsa_1080p`, `twitch_720p`, and `go_setups_720p`. There is no single default 720p layout.
 
-`assetto_corsa_1080p` is for Assetto Corsa original, not Competizione. Select it by name in `main.py` (the web API will not pick it from video height). Its throttle and brake bars are vertical, so those ROIs set `orientation: vertical`. ACC profiles set `orientation: horizontal`, which is also the default when the key is omitted.
+`assetto_corsa_1080p` is for Assetto Corsa original, not Competizione. Select it by name in `main.py` (the web API will not pick it from video height). Its throttle and brake bars are vertical, so those ROIs set `orientation: vertical`. ACC profiles set `orientation: horizontal`, which is also the default when the key is omitted. The empty bar is transparent, so the car interior shows through and moves as the camera pitches. Vertical measurement only counts color anchored at the bottom of the bar.
 
 ### Scaling guidance (from a known base resolution)
 
