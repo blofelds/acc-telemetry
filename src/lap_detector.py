@@ -60,17 +60,27 @@ class LapDetector:
             self.gear_roi = roi_config.get('gear', {})
 
         self.speed_reader_name = self.speed_reader_from_roi(self.speed_roi)
+        self.lap_reader_name = self.speed_reader_from_roi(self.lap_number_roi)
         self._ac_speed_reader = None
+        self._ac_lap_reader = None
         if self.speed_reader_name == AC_SPEED_READER:
-            template_dir = self.speed_roi.get('templates')
-            if not template_dir:
+            speed_templates = self.speed_roi.get('templates')
+            if not speed_templates:
                 raise ValueError(
                     "speed reader 'assetto_corsa' needs a templates path "
                     "pointing at 0.png through 9.png"
                 )
-            self._ac_speed_reader = AcSpeedReader(str(template_dir))
+            self._ac_speed_reader = AcSpeedReader(str(speed_templates))
+        if self.lap_reader_name == AC_SPEED_READER:
+            lap_templates = self.lap_number_roi.get('templates')
+            if not lap_templates:
+                raise ValueError(
+                    "lap_number reader 'assetto_corsa' needs a templates path "
+                    "pointing at 0.png through 9.png"
+                )
+            self._ac_lap_reader = AcSpeedReader(str(lap_templates))
         
-        # Initialize template matcher for lap numbers
+        # Initialize template matcher for lap numbers (ACC calibration leftover)
         self.lap_matcher = TemplateMatcher(template_dir)
         
         # Cache for lap number with temporal smoothing
@@ -150,10 +160,11 @@ class LapDetector:
     
     def extract_lap_number(self, frame: np.ndarray) -> Optional[int]:
         """
-        Extract lap number from the red flag area in top-left corner.
-        
-        Uses direct OCR on raw ROI (no preprocessing overhead).
-        The lap number appears as white digits on a red background flag icon.
+        Extract lap number from the HUD lap counter.
+
+        Competizione uses OCR on the flag digit. Assetto Corsa original sets
+        ``reader: assetto_corsa`` on the lap ROI and matches the same block
+        font used for speed (up to two leading digits).
         
         Args:
             frame: Full video frame (BGR format)
@@ -173,44 +184,39 @@ class LapDetector:
         if self._enable_performance_stats:
             self._total_frames_processed += 1
             self._recognition_calls += 1
-        
-        # Run OCR directly on raw BGR ROI
-        # No preprocessing needed - Tesseract handles color images perfectly
-        try:
-            import time
-            ocr_start = time.time()
-            
-            if self._tesserocr_api:
-                # Fast path: tesserocr (1-2ms)
-                roi_rgb = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
-                pil_image = Image.fromarray(roi_rgb)
-                self._tesserocr_api.SetImage(pil_image)
-                text = self._tesserocr_api.GetUTF8Text()
-            else:
-                # Slow path: pytesseract (50ms)
-                import pytesseract
-                text = pytesseract.image_to_string(roi, config=self.tesseract_config_lap)
-            
-            ocr_time = (time.time() - ocr_start) * 1000
-            text = text.strip()
-            
-            # Debug: print OCR results (disabled by default for cleaner output)
-            # if self._enable_performance_stats:
-            #     print(f"[DEBUG Frame {self._total_frames_processed}] OCR took {ocr_time:.2f}ms - result: '{text}'")
-            
-            # Parse lap number (should be 1-2 digits)
-            if text.isdigit():
-                lap_number = int(text)
-            else:
-                # Try to extract digits from text (in case of noise)
-                digits_only = ''.join(filter(str.isdigit, text))
-                if digits_only:
-                    lap_number = int(digits_only)
+
+        lap_number = None
+        if self._ac_lap_reader is not None:
+            lap_number = self._ac_lap_reader.read_leading_digits(roi, max_digits=2)
+        else:
+            # Run OCR directly on raw BGR ROI (Competizione / default)
+            try:
+                if self._tesserocr_api:
+                    # Fast path: tesserocr (1-2ms)
+                    roi_rgb = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
+                    pil_image = Image.fromarray(roi_rgb)
+                    self._tesserocr_api.SetImage(pil_image)
+                    text = self._tesserocr_api.GetUTF8Text()
                 else:
-                    lap_number = None
-        except Exception as e:
-            lap_number = None
-        
+                    # Slow path: pytesseract (50ms)
+                    import pytesseract
+                    text = pytesseract.image_to_string(roi, config=self.tesseract_config_lap)
+                
+                text = text.strip()
+                
+                # Parse lap number (should be 1-2 digits)
+                if text.isdigit():
+                    lap_number = int(text)
+                else:
+                    # Try to extract digits from text (in case of noise)
+                    digits_only = ''.join(filter(str.isdigit, text))
+                    if digits_only:
+                        lap_number = int(digits_only)
+                    else:
+                        lap_number = None
+            except Exception as e:
+                lap_number = None
+
         if lap_number is not None:
             # Validate: lap numbers should be reasonable (0-999)
             # Lap 0 = on grid/warmup, laps 1+ = racing laps

@@ -40,6 +40,11 @@ Each throttle and brake ROI may set `orientation`:
 
 Omit the key and the extractor treats the bar as horizontal, so older ACC profiles still work.
 
+Speed and lap ROIs may set `reader`:
+
+- Omit `reader` (or `ocr`): Tesseract OCR. Competizione profiles use this.
+- `reader: assetto_corsa` plus `templates:` pointing at `0.png`–`9.png`: glyph matching for Assetto Corsa original’s block font. The same template folder is used for speed and lap. Do not use ACC `lap_number_training` on that profile.
+
 ## Resolution Dependency
 Coordinates are **not** a single 720p layout. Use a profile that matches the video (for example `my_ps5_1080p` or `twitch_720p`).
 

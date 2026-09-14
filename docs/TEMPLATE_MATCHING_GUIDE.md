@@ -1,6 +1,6 @@
 # Template Matching Guide
 
-> **Historical document:** Template matching was an intermediate lap-number approach. `LapDetector.extract_lap_number()` now uses **tesserocr** (pytesseract fallback). `TemplateMatcher` remains in the tree but is not on that path, and there is no `templates/` directory in the repo. Prefer [USER_GUIDE.md](USER_GUIDE.md) and [FEATURES.md](FEATURES.md).
+> **Historical document:** Describes an intermediate ACC lap-number template path. Competizione `extract_lap_number()` uses **tesserocr** (pytesseract fallback). Assetto Corsa original uses `reader: assetto_corsa` glyph templates shared with speed (`templates/speed_digits/`). Prefer [USER_GUIDE.md](USER_GUIDE.md) and [FEATURES.md](FEATURES.md).
 
 ## Summary: OCR Replacement Complete!
 
