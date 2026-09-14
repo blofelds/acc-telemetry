@@ -105,18 +105,18 @@ assetto_corsa_1080p:
     height: 80
     orientation: vertical
   
-  # Lap count in the left-side timing panel
+  # Lap count in the left-side timing panel (e.g. "1 LAPS", "10 LAPS").
+  # Same block font as speed — OCR misreads it (often as 4). Use glyph templates.
+  # Width 42 fits two wide digits (~17px each + gap); 30 clipped fat+fat pairs.
+  # No lap_number_training on this profile: that ACC helper ROI sat on empty
+  # space to the right of single-digit laps and caused the stuck-at-4 bug.
   lap_number:
     x: 134
     y: 245
-    width: 30
+    width: 42
     height: 21
-  
-  lap_number_training:
-    x: 154
-    y: 245
-    width: 18
-    height: 21
+    reader: assetto_corsa
+    templates: templates/speed_digits/ac_1080p/
   
   # Completed lap time in the left-side timing panel
   last_lap_time:

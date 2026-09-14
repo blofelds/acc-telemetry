@@ -116,6 +116,28 @@ class AcSpeedReader:
             return None
         return value
 
+    def read_leading_digits(
+        self, roi_bgr: np.ndarray, max_digits: int = 2
+    ) -> Optional[int]:
+        """
+        Read up to ``max_digits`` from the left; stop at the first unmatched glyph.
+
+        Lap is ``N LAPS`` or ``NN LAPS`` — no slash. Speed-style matching would
+        fail if the crop catches a non-digit (for example the edge of LAPS).
+        Taking only the leading digit matches keeps the lap value.
+        """
+        digits = []
+        for glyph in segment_glyphs(roi_bgr):
+            digit = self._match(glyph)
+            if digit is None:
+                break
+            digits.append(digit)
+            if len(digits) >= max_digits:
+                break
+        if not digits:
+            return None
+        return int("".join(digits))
+
     def _match(self, glyph: np.ndarray) -> Optional[str]:
         sample = pad_glyph(glyph).astype(np.float32)
         best_digit = None

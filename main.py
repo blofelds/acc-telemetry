@@ -185,13 +185,17 @@ def main():
         f"brake={extractor.brake_orientation}"
     )
     
-    # Use lap_number_training ROI if available (more accurate for some videos)
+    # Use lap_number_training ROI if available (more accurate for some ACC videos).
+    # Skip the swap when lap_number uses the Assetto Corsa glyph reader — that
+    # profile has no training ROI, and the old one sat beside the digit.
     lap_roi_config = roi_config.copy()
     if 'lap_number_training' in roi_config:
-        print(f"   Using lap_number_training ROI for improved accuracy")
-        lap_roi_config['lap_number'] = roi_config['lap_number_training']
+        lap_reader = LapDetector.speed_reader_from_roi(roi_config.get('lap_number', {}))
+        if lap_reader != 'assetto_corsa':
+            print(f"   Using lap_number_training ROI for improved accuracy")
+            lap_roi_config['lap_number'] = roi_config['lap_number_training']
     
-    # Lap numbers via tesserocr (pytesseract fallback)
+    # Lap numbers via tesserocr (pytesseract fallback) or AC glyph templates
     lap_detector = LapDetector(lap_roi_config, enable_performance_stats=True)
     position_tracker = PositionTrackerV2()
     visualizer = InteractiveTelemetryVisualizer()

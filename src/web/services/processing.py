@@ -177,7 +177,9 @@ class VideoProcessingService:
 
         lap_roi_config = roi_config.copy()
         if 'lap_number_training' in roi_config:
-            lap_roi_config['lap_number'] = roi_config['lap_number_training']
+            lap_reader = LapDetector.speed_reader_from_roi(roi_config.get('lap_number', {}))
+            if lap_reader != 'assetto_corsa':
+                lap_roi_config['lap_number'] = roi_config['lap_number_training']
 
         lap_detector = LapDetector(lap_roi_config, enable_performance_stats=False)
         position_tracker = PositionTrackerV2()
