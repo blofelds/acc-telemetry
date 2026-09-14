@@ -125,12 +125,16 @@ assetto_corsa_1080p:
     width: 110
     height: 21
   
-  # Speed - km/h digits beside the pedal bars
+  # Speed - km/h digits beside the pedal bars.
+  # This block font is not the Competizione face, so OCR is the wrong reader.
+  # Pictures of these digits live in templates/. Omit reader on ACC profiles.
   speed:
     x: 1649
     y: 925
     width: 52
     height: 22
+    reader: assetto_corsa
+    templates: templates/speed_digits/ac_1080p/
   
   # Gear - large digit to the right of the speed readout
   gear:

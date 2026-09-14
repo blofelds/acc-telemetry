@@ -217,6 +217,8 @@ Shipped profiles include `my_ps5_1080p`, `assetto_corsa_1080p`, `twitch_720p`, a
 
 `assetto_corsa_1080p` is for Assetto Corsa original, not Competizione. Select it by name in `main.py` (the web API will not pick it from video height). Its throttle and brake bars are vertical, so those ROIs set `orientation: vertical`. ACC profiles set `orientation: horizontal`, which is also the default when the key is omitted. The empty bar is transparent, so the car interior shows through and moves as the camera pitches. Vertical measurement only counts color anchored at the bottom of the bar.
 
+Speed is chosen the same way, on the speed box, not from the profile name. Omit `reader` and the box is read with OCR. That is Competizione, whose digits are a plain face Tesseract already knows. Assetto Corsa original sets `reader: assetto_corsa` and `templates` to a folder of `0.png` through `9.png` cut from that HUD. A 1 that has joined the next digit is not split, so that frame is skipped rather than turned into an extra 1.
+
 ### Scaling guidance (from a known base resolution)
 
 **1920×1080 (1080p)**: Multiply 720p coordinates by 1.5  

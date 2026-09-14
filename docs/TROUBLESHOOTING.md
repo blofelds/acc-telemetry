@@ -7,6 +7,7 @@ This document consolidates solutions to common issues, bug fixes that were imple
 | Symptom | Likely Cause | Quick Fix |
 |---------|--------------|-----------|
 | All values 0% or 100% | ROI coordinates wrong, or bar orientation wrong | Check the profile, and `orientation` (`horizontal` vs `vertical`) |
+| Assetto Corsa speed is wrong | OCR on this block font | Use `reader: assetto_corsa` on the speed box, not an ACC profile |
 | Brake stuck near one value | Car interior showing through the empty bar | Vertical bars count only fill anchored at the bottom |
 | No lap numbers detected | ROI doesn't capture lap indicator | Verify lap_number ROI coordinates |
 | Lap numbers oscillating | (Fixed) Temporal smoothing issue | Update to latest version |

@@ -10,6 +10,8 @@ import numpy as np
 import re
 from typing import Optional, Tuple
 from pathlib import Path
+from src.ac_speed_reader import READER_NAME as AC_SPEED_READER
+from src.ac_speed_reader import AcSpeedReader
 from src.template_matcher import TemplateMatcher
 
 # Try to use fast tesserocr (direct C++ API), fall back to pytesseract
@@ -56,6 +58,17 @@ class LapDetector:
             self.last_lap_time_roi = roi_config.get('last_lap_time', {})
             self.speed_roi = roi_config.get('speed', {})
             self.gear_roi = roi_config.get('gear', {})
+
+        self.speed_reader_name = self.speed_reader_from_roi(self.speed_roi)
+        self._ac_speed_reader = None
+        if self.speed_reader_name == AC_SPEED_READER:
+            template_dir = self.speed_roi.get('templates')
+            if not template_dir:
+                raise ValueError(
+                    "speed reader 'assetto_corsa' needs a templates path "
+                    "pointing at 0.png through 9.png"
+                )
+            self._ac_speed_reader = AcSpeedReader(str(template_dir))
         
         # Initialize template matcher for lap numbers
         self.lap_matcher = TemplateMatcher(template_dir)
@@ -410,12 +423,35 @@ class LapDetector:
         except (KeyError, IndexError):
             return None
     
+    @staticmethod
+    def speed_reader_from_roi(speed_roi: Optional[dict]) -> str:
+        """
+        Return which speed reader a profile asked for.
+
+        Missing ``reader`` means OCR, so Competizione profiles stay as they
+        are. ``assetto_corsa`` matches each digit of that HUD font.
+
+        Raises:
+            ValueError: If ``reader`` is present but not a known name.
+        """
+        raw = (speed_roi or {}).get('reader', 'ocr')
+        if raw is None or str(raw).strip() == '':
+            return 'ocr'
+        name = str(raw).strip().lower()
+        if name not in ('ocr', AC_SPEED_READER):
+            raise ValueError(
+                f"Invalid speed reader '{raw}'. Use 'ocr' or 'assetto_corsa'."
+            )
+        return name
+
     def extract_speed(self, frame: np.ndarray) -> Optional[int]:
         """
         Extract current speed (km/h) from the HUD speed display.
-        
-        Uses direct OCR on raw ROI (no preprocessing overhead).
-        The speed appears as white digits on a dark background in the bottom-right corner.
+
+        Competizione uses OCR on the whole speed box. Assetto Corsa original
+        sets ``reader: assetto_corsa`` on the speed ROI and matches each
+        digit against saved pictures of that font. That path does not use
+        the OCR median.
         
         Args:
             frame: Full video frame (BGR format)
@@ -430,8 +466,15 @@ class LapDetector:
         roi = self._extract_roi(frame, self.speed_roi)
         if roi is None or roi.size == 0:
             return self._last_valid_speed
-        
-        # Run OCR directly on raw BGR ROI
+
+        if self._ac_speed_reader is not None:
+            speed = self._ac_speed_reader.read(roi)
+            if speed is not None:
+                self._last_valid_speed = speed
+                return speed
+            return self._last_valid_speed
+
+        # Competizione and any profile without reader: OCR the whole box.
         # No preprocessing needed - Tesseract handles it well
         try:
             if self._tesserocr_api:
