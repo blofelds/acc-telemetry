@@ -82,7 +82,9 @@ The lap detection feature went through several iterations:
 - **Pros**: No calibration needed, universally applicable
 - **Cons**: Requires tesserocr installation (falls back to pytesseract if unavailable)
 
-**Current approach:** tesserocr on every frame (pytesseract fallback). `TemplateMatcher` is still in the tree from Phase 2 but is not called by `extract_lap_number()`.
+**Current approach:**
+- **Competizione (ACC):** tesserocr on every frame for lap/speed/gear (pytesseract fallback). `TemplateMatcher` is leftover and is not on that path.
+- **Assetto Corsa original:** `reader: assetto_corsa` on speed and lap ROIs; shared digit pictures in `templates/speed_digits/ac_1080p/`. OCR is the wrong reader for that font.
 
 **Development Journey - Temporal Smoothing:**
 
@@ -272,24 +274,25 @@ Position tracking extracts the car's location around the track (0-100%) from the
 
 ## Speed and Gear Detection
 
-**Current Implementation:** tesserocr OCR (~2ms per frame) with pytesseract fallback
+**Competizione:** tesserocr OCR (~2ms per frame) with pytesseract fallback for speed and gear.
 
-Uses OCR to read numeric values from HUD:
-- **Speed**: 3-digit number inside rev meter
-- **Gear**: Single digit (1-6) in center of rev meter
+**Assetto Corsa original:** speed uses the same `reader: assetto_corsa` glyph templates as lap (see above). Gear still uses OCR on that profile today.
 
-**Why OCR instead of template matching here:**
+Uses OCR (or AC templates for speed) to read numeric values from HUD:
+- **Speed**: digits beside the pedal cluster (AC) or inside the rev meter (ACC)
+- **Gear**: Single digit (1-6) near the rev / speed readout
+
+**Why OCR for Competizione speed/gear:**
 - Speed changes constantly (0-300+ km/h)
-- Would need 300+ templates vs 10 for lap numbers
-- tesserocr is fast enough (~2ms) for per-frame extraction
-- OCR flexibility outweighs template matching's marginal speed advantage
+- tesserocr is fast enough (~2ms) for per-frame extraction on that plain digit face
+- Assetto Corsa’s block font is a different case — templates, not OCR
 
-**Preprocessing:** Minimal - tesserocr handles raw BGR ROI effectively
+**Preprocessing (OCR path):** Minimal - tesserocr handles raw BGR ROI effectively
 - No HSV conversion needed
 - No thresholding needed
 - Tesseract handles white-on-dark text natively
 
-**Performance:** Total OCR overhead (speed + gear) is ~4ms per frame, acceptable for post-processing workflow.
+**Performance:** Competizione speed + gear OCR is ~4ms per frame. AC speed/lap glyph matching is a similar budget.
 
 ## TC/ABS Detection
 

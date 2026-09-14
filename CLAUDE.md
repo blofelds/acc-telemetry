@@ -149,9 +149,8 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
    - Handles color changes when TC/ABS activate (green→yellow, red→orange)
 
 3. **[lap_detector.py](src/lap_detector.py)** - LapDetector class
-   - Fast lap number and OCR detection
-   - tesserocr for lap numbers, speed, and gear: Direct C++ API, ~2ms per frame
-   - pytesseract fallback: lap times at transitions, and if tesserocr is unavailable
+   - Competizione: tesserocr for lap numbers, speed, and gear (~2ms); pytesseract for lap times / fallback
+   - Assetto Corsa original: `reader: assetto_corsa` glyph templates for speed and lap (same `0.png`–`9.png` set)
    - Temporal smoothing: Majority voting across recent frames
 
 4. **[position_tracker_v2.py](src/position_tracker_v2.py)** - PositionTrackerV2 class
@@ -193,8 +192,9 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
 - **Pandas**: Data structuring and CSV export
 - **Matplotlib/Plotly**: Telemetry visualization
 - **PyYAML**: Configuration file parsing
-- **tesserocr**: Fast OCR for lap numbers and speed/gear
+- **tesserocr**: Fast OCR for Competizione lap/speed/gear
 - **pytesseract**: Fallback OCR for lap times
+- **AcSpeedReader**: Assetto Corsa original block-font digit matching (speed and lap)
 
 ## Architecture Overview
 
@@ -400,7 +400,7 @@ filled_width = np.median(filled_widths)
 
 ### OCR Strategy
 
-The project uses **tesserocr** (fast C++ API) for extracting lap numbers and lap times from the HUD.
+Competizione lap numbers, speed, and gear use **tesserocr** (fast C++ API), with pytesseract for lap times and as a fallback. Assetto Corsa original sets `reader: assetto_corsa` on speed and lap ROIs and matches glyphs from `templates/speed_digits/` instead — Tesseract misreads that block font.
 
 #### Why tesserocr over pytesseract?
 - **Performance**: tesserocr is 25x faster (~2ms vs ~50ms per frame)
@@ -465,7 +465,7 @@ tesseract --version
 ```
 
 ### Template Matching (historical)
-Lap numbers previously used template matching. `extract_lap_number()` now runs **tesserocr** (pytesseract fallback). `src/template_matcher.py` is unused on that path. See [docs/TEMPLATE_MATCHING_GUIDE.md](docs/TEMPLATE_MATCHING_GUIDE.md).
+Lap numbers previously used ACC `TemplateMatcher`. Competizione `extract_lap_number()` now runs **tesserocr** (pytesseract fallback). Assetto Corsa original uses `reader: assetto_corsa` glyph templates (`AcSpeedReader`) for lap and speed. See [docs/TEMPLATE_MATCHING_GUIDE.md](docs/TEMPLATE_MATCHING_GUIDE.md).
 
 ### Kalman Filtering for Position Tracking
 Position tracking includes outlier rejection:

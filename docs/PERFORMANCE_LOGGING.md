@@ -7,8 +7,8 @@ Added comprehensive performance tracking to `main.py` to monitor the execution t
 
 ### Per-Frame Operations (tracked every frame):
 1. **Telemetry Extraction** - Throttle, brake, steering bar analysis
-2. **Lap Number Detection** - OCR for lap display (tesserocr / pytesseract)
-3. **Speed Extraction** - OCR for speed value
+2. **Lap Number Detection** - Competizione OCR (tesserocr / pytesseract) or AC glyph templates
+3. **Speed Extraction** - Competizione OCR or AC glyph templates
 4. **Gear Extraction** - OCR for current gear
 5. **Lap Transition Detection** - Logic to detect lap changes
 6. **Lap Time Extraction** - OCR for lap times (only on transition frames)

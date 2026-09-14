@@ -14,13 +14,13 @@ Extract detailed telemetry data from Assetto Corsa Competizione gameplay videos 
 
 ## 🎯 What It Does
 
-This tool analyzes ACC gameplay videos frame-by-frame to extract:
+This tool analyzes ACC (and Assetto Corsa original) gameplay videos frame-by-frame to extract:
 - **Throttle input** (0-100%)
 - **Brake input** (0-100%)
 - **Steering input** (-1.0 to +1.0)
-- **Speed** (km/h via OCR)
+- **Speed** (km/h; OCR on Competizione, glyph templates on Assetto Corsa original)
 - **Gear** (1-6 via OCR)
-- **Lap numbers** (via template matching)
+- **Lap numbers** (OCR on Competizione; glyph templates on Assetto Corsa original)
 - **Track position** (0-100% via minimap analysis) 🆕
 
 And generates:
@@ -177,7 +177,8 @@ Currently configured via named profiles in `config/roi_config.yaml` (e.g. PS5 10
 - **NumPy / Pandas** - Array ops and CSV export
 - **Plotly** - Interactive HTML visualizations
 - **PyYAML** - Configuration
-- **tesserocr / pytesseract** - OCR for speed, gear, lap times
+- **tesserocr / pytesseract** - OCR for Competizione lap/speed/gear and lap times
+- **AcSpeedReader** - Assetto Corsa original digit glyphs (speed and lap)
 - **FastAPI** - Optional web API (`src/web/`)
 
 ## 💡 How It Works
@@ -185,7 +186,7 @@ Currently configured via named profiles in `config/roi_config.yaml` (e.g. PS5 10
 1. **Video Processing**: Extract frames from gameplay video
 2. **ROI Extraction**: Crop HUD regions (throttle, brake, steering, minimap, etc.)
 3. **Color Detection**: HSV masks for bar colors and steering indicator
-4. **OCR / Templates**: Read speed, gear, and lap numbers
+4. **OCR / Templates**: Read speed, gear, and lap numbers (profile-dependent)
 5. **Position Tracking**: Follow the red dot on the minimap racing line
 6. **Export**: CSV + interactive HTML
 

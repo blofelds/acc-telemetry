@@ -174,8 +174,11 @@ TC/ABS activation changes bar colors:
 **Architecture - Hybrid Approach:**
 
 ```
-Lap Numbers → tesserocr (primary) / pytesseract (fallback) / template matching (optional)
-Speed/Gear  → tesserocr (primary) / pytesseract (fallback)
+Lap Numbers → Competizione: tesserocr / pytesseract
+              Assetto Corsa: assetto_corsa glyph templates (leading digits)
+Speed       → Competizione: tesserocr / pytesseract
+              Assetto Corsa: assetto_corsa glyph templates
+Gear        → tesserocr (primary) / pytesseract (fallback)
 Lap Times   → pytesseract (only at transitions, ~1-2 times per minute)
 ```
 
@@ -183,16 +186,14 @@ Lap Times   → pytesseract (only at transitions, ~1-2 times per minute)
 
 | Element | Method | Reason |
 |---------|--------|--------|
-| Lap numbers | tesserocr | Every frame, needs speed (~2ms) |
-| Speed | tesserocr | Every frame, changes constantly (0-300+) |
+| Lap numbers (ACC) | tesserocr | Every frame; plain Competizione flag digits |
+| Lap numbers (AC) | glyph templates | Same block font as AC speed; OCR misreads it |
+| Speed (ACC) | tesserocr | Every frame; plain face |
+| Speed (AC) | glyph templates | Block font; shared `0.png`–`9.png` with lap |
 | Gear | tesserocr | Every frame, simple (1-6) |
 | Lap times | pytesseract | Only at transitions, complex format (MM:SS.mmm) |
 
-**Template matching is optional:**
-- Requires one-time calibration (extract digit templates)
-- Same performance as tesserocr (~2ms)
-- Useful if processing many videos regularly
-- Fallback if OCR installation issues
+**Historical note:** An older ACC `TemplateMatcher` path for lap numbers remains in the tree but is not used when `reader` is omitted (Competizione default).
 
 **Historical Evolution - OCR Performance:**
 
@@ -565,12 +566,12 @@ twitch_720p:
 
 2. For each frame:
    ├─> VideoProcessor extracts ROI dict
-   ├─> LapDetector extracts lap number (OCR + smoothing)
+   ├─> LapDetector extracts lap number (OCR or AC glyphs + smoothing)
    ├─> LapDetector checks for lap transition
    │   └─> If transition: extract lap time (pytesseract)
    ├─> PositionTracker extracts position (red dot + path following)
    ├─> TelemetryExtractor extracts throttle/brake/steering (HSV + pixel filtering)
-   ├─> LapDetector extracts speed/gear (OCR)
+   ├─> LapDetector extracts speed/gear (OCR or AC glyphs for speed)
    └─> Data appended to list
 
 3. After all frames processed (`main.py`):
