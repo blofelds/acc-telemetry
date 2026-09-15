@@ -276,7 +276,7 @@ Position tracking extracts the car's location around the track (0-100%) from the
 
 **Competizione:** tesserocr OCR (~2ms per frame) with pytesseract fallback for speed and gear.
 
-**Assetto Corsa original:** speed uses the same `reader: assetto_corsa` glyph templates as lap (see above). Gear still uses OCR on that profile today.
+**Assetto Corsa original:** speed and lap use the same `reader: assetto_corsa` glyph templates. Gear uses its own larger digit pictures (`templates/gear_digits/`); Neutral is `N.png` and is stored as `0`. OCR is the wrong reader for that font.
 
 Uses OCR (or AC templates for speed) to read numeric values from HUD:
 - **Speed**: digits beside the pedal cluster (AC) or inside the rev meter (ACC)
@@ -292,7 +292,7 @@ Uses OCR (or AC templates for speed) to read numeric values from HUD:
 - No thresholding needed
 - Tesseract handles white-on-dark text natively
 
-**Performance:** Competizione speed + gear OCR is ~4ms per frame. AC speed/lap glyph matching is a similar budget.
+**Performance:** Competizione speed + gear OCR is ~4ms per frame. AC speed/lap/gear glyph matching is a similar budget.
 
 ## TC/ABS Detection
 
