@@ -10,6 +10,7 @@ import numpy as np
 import re
 from typing import Optional, Tuple
 from pathlib import Path
+from src.ac_gear_reader import AcGearReader
 from src.ac_speed_reader import READER_NAME as AC_SPEED_READER
 from src.ac_speed_reader import AcSpeedReader
 from src.template_matcher import TemplateMatcher
@@ -61,8 +62,10 @@ class LapDetector:
 
         self.speed_reader_name = self.speed_reader_from_roi(self.speed_roi)
         self.lap_reader_name = self.speed_reader_from_roi(self.lap_number_roi)
+        self.gear_reader_name = self.speed_reader_from_roi(self.gear_roi)
         self._ac_speed_reader = None
         self._ac_lap_reader = None
+        self._ac_gear_reader = None
         if self.speed_reader_name == AC_SPEED_READER:
             speed_templates = self.speed_roi.get('templates')
             if not speed_templates:
@@ -79,6 +82,14 @@ class LapDetector:
                     "pointing at 0.png through 9.png"
                 )
             self._ac_lap_reader = AcSpeedReader(str(lap_templates))
+        if self.gear_reader_name == AC_SPEED_READER:
+            gear_templates = self.gear_roi.get('templates')
+            if not gear_templates:
+                raise ValueError(
+                    "gear reader 'assetto_corsa' needs a templates path "
+                    "pointing at gear digit pictures (1.png-6.png, N.png)"
+                )
+            self._ac_gear_reader = AcGearReader(str(gear_templates))
         
         # Initialize template matcher for lap numbers (ACC calibration leftover)
         self.lap_matcher = TemplateMatcher(template_dir)
@@ -545,16 +556,18 @@ class LapDetector:
     
     def extract_gear(self, frame: np.ndarray) -> Optional[int]:
         """
-        Extract current gear (1-6) from the HUD gear display.
-        
-        Uses direct OCR on raw ROI (no preprocessing overhead).
-        The gear appears as a white digit in the center of the rev meter arc.
+        Extract current gear from the HUD gear display.
+
+        Competizione uses OCR (1-6). Assetto Corsa original sets
+        ``reader: assetto_corsa`` on the gear ROI and matches one large
+        glyph. Neutral is returned as 0. That path does not use the OCR
+        majority vote.
         
         Args:
             frame: Full video frame (BGR format)
             
         Returns:
-            Gear as integer (1-6), or None if extraction fails
+            Gear as integer (0 for Neutral, 1-6), or None if extraction fails
         """
         if frame is None or frame.size == 0:
             return self._last_valid_gear
@@ -563,9 +576,15 @@ class LapDetector:
         roi = self._extract_roi(frame, self.gear_roi)
         if roi is None or roi.size == 0:
             return self._last_valid_gear
+
+        if self._ac_gear_reader is not None:
+            gear = self._ac_gear_reader.read(roi)
+            if gear is not None:
+                self._last_valid_gear = gear
+                return gear
+            return self._last_valid_gear
         
-        # Run OCR directly on raw BGR ROI
-        # No preprocessing needed - Tesseract handles it well
+        # Competizione / default: OCR on the raw BGR ROI.
         try:
             if self._tesserocr_api:
                 # Fast path: tesserocr (1-2ms)
