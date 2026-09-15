@@ -146,6 +146,62 @@ def select_profile(full_config):
             print("❌ Invalid input. Please enter a number.")
 
 
+def open_html_in_browser(html_path: str) -> None:
+    """Open a local HTML file in the default browser."""
+    try:
+        abs_path = Path(html_path).resolve()
+        print(f"      🚀 Opening in default browser...")
+        webbrowser.open(f'file://{abs_path}')
+    except Exception as e:
+        print(f"      ⚠️  Could not open browser automatically: {e}")
+
+
+def maybe_plot_position_comparison(visualizer, df, roi_config) -> None:
+    """
+    Build and open a position-based lap comparison when the profile can.
+
+    Needs a track_map ROI (ACC profiles) plus at least two laps with
+    track_position filled. Assetto Corsa original has no minimap, so it
+    is skipped.
+    """
+    if 'track_map' not in roi_config:
+        print(
+            "   ℹ️  Skipping position lap comparison "
+            "(no track_map ROI on this profile)."
+        )
+        return
+
+    if 'track_position' not in df.columns or 'lap_number' not in df.columns:
+        print(
+            "   ℹ️  Skipping position lap comparison "
+            "(CSV missing lap_number or track_position)."
+        )
+        return
+
+    valid = df[df['lap_number'].notna() & df['track_position'].notna()]
+    unique_laps = sorted(valid['lap_number'].unique()) if not valid.empty else []
+    if len(unique_laps) < 2:
+        print(
+            "   ℹ️  Skipping position lap comparison "
+            f"(need at least 2 laps with track position, found {len(unique_laps)})."
+        )
+        return
+
+    compare_start = time.time()
+    try:
+        compare_path = visualizer.plot_position_based_comparison(df)
+    except ValueError as e:
+        print(f"   ℹ️  Skipping position lap comparison ({e}).")
+        return
+
+    compare_time = time.time() - compare_start
+    print(
+        f"   ✅ Position lap comparison saved: {compare_path} "
+        f"(took {compare_time:.2f}s)"
+    )
+    open_html_in_browser(compare_path)
+
+
 def main():
     """Main processing pipeline."""
     
@@ -429,14 +485,10 @@ def main():
     graph_time = time.time() - graph_start
     print(f"   ✅ Interactive graph saved: {graph_path} (took {graph_time:.2f}s)")
     print(f"      💡 Open this HTML file in your browser for interactive zoom/pan/hover!")
+    open_html_in_browser(graph_path)
 
-        # Open immediately in browser
-    try:
-        abs_path = Path(graph_path).resolve()
-        print(f"      🚀 Opening in default browser...")
-        webbrowser.open(f'file://{abs_path}')
-    except Exception as e:
-        print(f"      ⚠️  Could not open browser automatically: {e}")
+    # Position-based lap comparison for profiles with a minimap (ACC).
+    maybe_plot_position_comparison(visualizer, df, roi_config)
     
     print(f"\n   Output Generation Summary:")
     print(f"      DataFrame creation: {df_time*1000:.1f}ms")
