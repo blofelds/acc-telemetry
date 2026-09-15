@@ -82,12 +82,15 @@ def select_video_file():
         print(f"❌ Error: Directory '{video_dir}' not found.")
         return None
 
-    mp4_files = glob.glob(os.path.join(video_dir, "*.mp4"))
-    
+    mp4_files = sorted(
+        glob.glob(os.path.join(video_dir, "*.mp4")),
+        key=os.path.basename,
+    )
+
     if not mp4_files:
         print(f"❌ Error: No .mp4 files found in '{video_dir}/'.")
         return None
-    
+
     print(f"\n🎥 Found video files in '{video_dir}/':")
     for i, file_path in enumerate(mp4_files, 1):
         filename = os.path.basename(file_path)
