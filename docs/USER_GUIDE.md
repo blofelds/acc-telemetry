@@ -150,7 +150,7 @@ Or use the web API `POST /api/telemetry/compare` when running `python run_server
 | `lap_number` | 1-99 | Current lap (from HUD) |
 | `track_position` | 0.0-100.0 | Position around track (%) |
 | `speed` | 0-300+ | Speed in km/h |
-| `gear` | 1-6 | Current gear |
+| `gear` | 0-6 | Current gear (`0` = Neutral on Assetto Corsa) |
 | `throttle` | 0.0-100.0 | Throttle input (%) |
 | `brake` | 0.0-100.0 | Brake input (%) |
 | `steering` | -1.0 to +1.0 | Steering (-1=full left, +1=full right) |
@@ -217,7 +217,7 @@ Shipped profiles include `my_ps5_1080p`, `assetto_corsa_1080p`, `twitch_720p`, a
 
 `assetto_corsa_1080p` is for Assetto Corsa original, not Competizione. Select it by name in `main.py` (the web API will not pick it from video height). Its throttle and brake bars are vertical, so those ROIs set `orientation: vertical`. ACC profiles set `orientation: horizontal`, which is also the default when the key is omitted. The empty bar is transparent, so the car interior shows through and moves as the camera pitches. Vertical measurement only counts color anchored at the bottom of the bar.
 
-Speed and lap digits are chosen the same way, on each ROI box, not from the profile name. Omit `reader` and the box is read with OCR. That is Competizione, whose digits are a plain face Tesseract already knows. Assetto Corsa original sets `reader: assetto_corsa` and `templates` to a folder of `0.png` through `9.png` cut from that HUD (the same templates serve speed and lap). A thin `1` is kept as its own glyph when there is a clear column gap; a `1` that has joined the next digit is not split, so that frame is skipped rather than turned into an extra `1`. Lap reads up to two leading digits so a crop that clips into the word LAPS does not invent a value. The AC lap ROI is wide enough for two fat digits; that profile does not use `lap_number_training` (ACC profiles still may).
+Speed, lap, and gear digits are chosen the same way, on each ROI box, not from the profile name. Omit `reader` and the box is read with OCR. That is Competizione, whose digits are a plain face Tesseract already knows. Assetto Corsa original sets `reader: assetto_corsa` and `templates` on those boxes. Speed and lap share `0.png` through `9.png` cut from that HUD. Gear uses its own larger pictures in `templates/gear_digits/` (`1.png`–`6.png` as available, plus `N.png` for Neutral, stored as `0` in the CSV). A thin `1` is kept as its own glyph when there is a clear column gap; a `1` that has joined the next digit is not split, so that frame is skipped rather than turned into an extra `1`. Lap reads up to two leading digits so a crop that clips into the word LAPS does not invent a value. The AC lap ROI is wide enough for two fat digits; that profile does not use `lap_number_training` (ACC profiles still may).
 
 ### Scaling guidance (from a known base resolution)
 
