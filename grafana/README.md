@@ -1,14 +1,19 @@
 # Grafana dashboards for ACC Telemetry Extractor
 
-Mirrors the interactive HTML from `main.py` (throttle, brake, steering,
-speed, gear, TC, ABS, lap) using the **CSV data source** plugin you already
-have (`marcusolsson-csv-datasource`).
+Uses the **CSV data source** plugin (`marcusolsson-csv-datasource`) to mirror
+the Plotly HTML outputs from `main.py`.
+
+| Dashboard | JSON | What it shows |
+|---|---|---|
+| **ACC Telemetry Analysis** | `dashboards/acc-telemetry.json` | Full session vs video time (throttle, brake, steering, speed, gear, TC, ABS, lap) |
+| **ACC Lap Comparison (all laps)** | `dashboards/acc-lap-comparison.json` | Every complete lap overlaid on **track position** (throttle, brake, steering, speed, TC, ABS) |
 
 ## Prerequisites
 
 - Grafana running (you have 13.x)
-- Plugin: **CSV** (`marcusolsson-csv-datasource`) — already present on your install
-- A telemetry CSV from `python main.py`
+- Plugin: **CSV** (`marcusolsson-csv-datasource`)
+- A telemetry CSV from `python main.py` that includes `lap_number` and
+  `track_position` for the lap overlay dashboard
 
 ## One-time Grafana setup
 
@@ -30,12 +35,10 @@ sudo systemctl restart grafana-server
 
 ### 2. CSV directory (no world-readable home)
 
-Keep CSVs under Grafana’s own tree. Your process already has
-`/var/lib/grafana/csv` (owned by the Grafana runtime user). Grant **only
+Keep CSVs under Grafana’s own tree (`/var/lib/grafana/csv`). Grant **only
 your account** write access with an ACL — do **not** `chmod a+rx` on `$HOME`:
 
 ```bash
-# You can write; Grafana can read. Still no world access on $HOME.
 sudo setfacl -m u:$USER:rwx /var/lib/grafana/csv
 sudo setfacl -m u:grafana:rx /var/lib/grafana/csv
 sudo setfacl -d -m u:$USER:rwx /var/lib/grafana/csv
@@ -45,48 +48,22 @@ sudo setfacl -d -m u:grafana:r /var/lib/grafana/csv
 `prepare_grafana_csv.py` also runs `setfacl -m u:grafana:r` on each file it
 writes (as file owner, no sudo).
 
-Check:
+### 3. Data source + import dashboards
 
-```bash
-getfacl /var/lib/grafana/csv
-touch /var/lib/grafana/csv/.write_test && rm /var/lib/grafana/csv/.write_test
-```
+**Manual UI (simplest):**
 
-Optional alternative (same idea, group instead of ACL): make a dedicated dir
-owned by you with group readable by Grafana’s group, mode `2750` — still no
-“other” permissions.
+1. **Connections → Data sources → Add** → **CSV**
+2. Storage: **Local**, path: `/var/lib/grafana/csv`
+3. Save & test
+4. **Dashboards → Import** each of:
+   - `grafana/dashboards/acc-telemetry.json`
+   - `grafana/dashboards/acc-lap-comparison.json`
+5. Pick your CSV data source from the dashboard **Data source** dropdown
 
-### 3. Provision data source + dashboard (recommended)
-
-Copy provisioning configs and the dashboard JSON into places Grafana already
-owns (again: no `$HOME` permissions required):
-
-```bash
-sudo cp grafana/provisioning/datasources/acc-telemetry-csv.yaml \
-  /etc/grafana/provisioning/datasources/
-
-sudo cp grafana/provisioning/dashboards/acc-telemetry.yaml \
-  /etc/grafana/provisioning/dashboards/
-
-sudo mkdir -p /var/lib/grafana/dashboards/acc-telemetry
-sudo cp grafana/dashboards/*.json /var/lib/grafana/dashboards/acc-telemetry/
-sudo chown -R nobody:nogroup /var/lib/grafana/dashboards/acc-telemetry
-
-sudo systemctl restart grafana-server
-```
-
-Or **manual UI** (simplest):
-
-1. **Connections → Data sources → Add** → search **CSV**
-2. Storage: **Local**
-3. Path / URL: `/var/lib/grafana/csv`
-4. Save & test
-5. **Dashboards → New → Import** → upload `grafana/dashboards/acc-telemetry.json`
-6. Pick the CSV data source when prompted (or set UID `acc-telemetry-csv` to match)
+Or copy the provisioning files under `grafana/provisioning/` plus both JSON
+dashboards into Grafana’s provisioned paths (see comments in those YAML files).
 
 ## Load a session into Grafana
-
-After extraction:
 
 ```bash
 source venv/bin/activate
@@ -95,41 +72,59 @@ python scripts/prepare_grafana_csv.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
 
 Writes into `/var/lib/grafana/csv` by default:
 
-- `grafana_telemetry_….csv` — archived copy for this run
-- `telemetry_current.csv` — what the dashboard reads by default
+| File | Used by |
+|---|---|
+| `telemetry_current.csv` | Session dashboard |
+| `telemetry_laps_by_position.csv` | Lap comparison (all laps, position-aligned) |
+| `grafana_telemetry_….csv` | Archived session copy |
 
-Override location with `-o` or `GRAFANA_CSV_DIR` if needed.
+Incomplete laps (short span / few frames) and lap `0` are skipped for the
+overlay. Use `--include-lap-zero` if you want lap 0 included.
 
-Open **ACC Telemetry Analysis** in Grafana.
+### Session dashboard time range
 
-### Time range
+Timestamps = video elapsed on **1970-01-01 UTC**.
 
-Timestamps are mapped onto **1970-01-01 UTC** so the axis equals video
-elapsed time. Default dashboard range is 5 minutes from midnight UTC.
+- **From:** `1970-01-01 00:00:00`
+- **To:** past your session length (e.g. `00:12:30`)
 
-- Short clips: zoom or set **To** earlier (e.g. `1970-01-01 00:01:30`)
-- Longer sessions: extend **To** past your max `time` column
+### Lap comparison time range
 
-Shared crosshair is on (`graphTooltip: 1`) so all panels track together,
-similar to the HTML unified hover.
+Timestamps = **track position %** mapped to seconds (`00:00:45` ≈ 45% around
+the lap). Default dashboard window is 0–100 seconds:
 
-### Switch files
+- **From:** `1970-01-01 00:00:00`
+- **To:** `1970-01-01 00:01:40`
 
-Use the **CSV file** text box at the top of the dashboard (relative to
-`/var/lib/grafana/csv`), e.g. `grafana_telemetry_20250101_120000.csv`.
+All complete laps appear as separate series on each panel. Use the **Laps**
+multi-select at the top to show or hide the same laps on every panel at once
+(legend clicks only affect one panel).
 
-## Panel map (HTML ↔ Grafana)
+Shared crosshair is on for both dashboards.
 
-| HTML subplot | Grafana panel | Colour |
-|---|---|---|
-| Throttle | Throttle Input | Green |
-| Brake | Brake Input | Red |
-| Steering | Steering Input | Dodger blue |
-| Speed | Speed | Dark orange |
-| Gear | Gear (step) | Purple |
-| TC | Traction Control | Orange |
-| ABS | ABS | Dark orange |
-| (lap markers) | Lap Number | Slate |
+## Panel map — session dashboard
+
+| HTML subplot | Grafana panel |
+|---|---|
+| Throttle | Throttle Input |
+| Brake | Brake Input |
+| Steering | Steering Input |
+| Speed | Speed |
+| Gear | Gear |
+| TC | Traction Control |
+| ABS | ABS |
+| (lap markers) | Lap Number |
+
+## Panel map — lap comparison
+
+| HTML (`plot_position_based_comparison`) | Grafana |
+|---|---|
+| Throttle overlay (2 laps) | Throttle vs Track Position (**all** laps) |
+| Brake overlay | Brake vs Track Position |
+| Steering overlay | Steering vs Track Position |
+| Speed overlay | Speed vs Track Position |
+| *(not in HTML lap compare)* | TC / ABS vs Track Position |
+| Time delta (pairwise) | Not yet (needs a chosen baseline lap) |
 
 ## Note on the CSV plugin
 

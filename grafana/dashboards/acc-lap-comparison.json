@@ -1,0 +1,1027 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Position-based lap comparison with every complete lap overlaid (throttle, brake, steering, speed, TC, ABS). Use the Laps multi-select at the top to isolate the same laps on every panel.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Throttle (%)",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line"
+          },
+          "displayName": "${__field.labels.lap_label}",
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_label",
+              "type": "string"
+            },
+            {
+              "name": "track_position",
+              "type": "number"
+            },
+            {
+              "name": "throttle",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Throttle vs Track Position",
+      "description": "X-axis is track position: clock seconds \u2248 position % (00:00:45 \u2248 45%). Use the Laps control at the top to show/hide laps on every panel at once.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "lap_label",
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": "${laps:regex}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "timestamp",
+                "lap_label",
+                "throttle"
+              ]
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "lap_label"
+            ],
+            "keepOrphan": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Brake (%)",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line"
+          },
+          "displayName": "${__field.labels.lap_label}",
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_label",
+              "type": "string"
+            },
+            {
+              "name": "track_position",
+              "type": "number"
+            },
+            {
+              "name": "brake",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Brake vs Track Position",
+      "description": "X-axis is track position: clock seconds \u2248 position % (00:00:45 \u2248 45%). Use the Laps control at the top to show/hide laps on every panel at once.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "lap_label",
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": "${laps:regex}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "timestamp",
+                "lap_label",
+                "brake"
+              ]
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "lap_label"
+            ],
+            "keepOrphan": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Steering (\u22121\u2026+1)",
+            "fillOpacity": 0,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line"
+          },
+          "displayName": "${__field.labels.lap_label}",
+          "min": -1,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_label",
+              "type": "string"
+            },
+            {
+              "name": "track_position",
+              "type": "number"
+            },
+            {
+              "name": "steering",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Steering vs Track Position",
+      "description": "X-axis is track position: clock seconds \u2248 position % (00:00:45 \u2248 45%). Use the Laps control at the top to show/hide laps on every panel at once.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "lap_label",
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": "${laps:regex}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "timestamp",
+                "lap_label",
+                "steering"
+              ]
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "lap_label"
+            ],
+            "keepOrphan": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Speed (km/h)",
+            "fillOpacity": 0,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line"
+          },
+          "displayName": "${__field.labels.lap_label}"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_label",
+              "type": "string"
+            },
+            {
+              "name": "track_position",
+              "type": "number"
+            },
+            {
+              "name": "speed",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Speed vs Track Position",
+      "description": "X-axis is track position: clock seconds \u2248 position % (00:00:45 \u2248 45%). Use the Laps control at the top to show/hide laps on every panel at once.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "lap_label",
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": "${laps:regex}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "timestamp",
+                "lap_label",
+                "speed"
+              ]
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "lap_label"
+            ],
+            "keepOrphan": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "TC",
+            "fillOpacity": 25,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line"
+          },
+          "displayName": "${__field.labels.lap_label}",
+          "min": -0.1,
+          "max": 1.2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_label",
+              "type": "string"
+            },
+            {
+              "name": "track_position",
+              "type": "number"
+            },
+            {
+              "name": "tc_active",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Traction Control (TC) vs Track Position",
+      "description": "X-axis is track position: clock seconds \u2248 position % (00:00:45 \u2248 45%). Use the Laps control at the top to show/hide laps on every panel at once.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "lap_label",
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": "${laps:regex}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "timestamp",
+                "lap_label",
+                "tc_active"
+              ]
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "lap_label"
+            ],
+            "keepOrphan": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "ABS",
+            "fillOpacity": 25,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line"
+          },
+          "displayName": "${__field.labels.lap_label}",
+          "min": -0.1,
+          "max": 1.2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_label",
+              "type": "string"
+            },
+            {
+              "name": "track_position",
+              "type": "number"
+            },
+            {
+              "name": "abs_active",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "ABS vs Track Position",
+      "description": "X-axis is track position: clock seconds \u2248 position % (00:00:45 \u2248 45%). Use the Laps control at the top to show/hide laps on every panel at once.",
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "lap_label",
+                "config": {
+                  "id": "regex",
+                  "options": {
+                    "value": "${laps:regex}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "timestamp",
+                "lap_label",
+                "abs_active"
+              ]
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "lap_label"
+            ],
+            "keepOrphan": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [
+    "acc",
+    "telemetry",
+    "sim-racing",
+    "lap-comparison"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data source",
+        "name": "datasource",
+        "options": [],
+        "query": "marcusolsson-csv-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "telemetry_laps_by_position.csv",
+          "value": "telemetry_laps_by_position.csv"
+        },
+        "hide": 0,
+        "label": "CSV file",
+        "name": "csv_file",
+        "options": [
+          {
+            "selected": true,
+            "text": "telemetry_laps_by_position.csv",
+            "value": "telemetry_laps_by_position.csv"
+          }
+        ],
+        "query": "telemetry_laps_by_position.csv",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Laps",
+        "multi": true,
+        "name": "laps",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "Lap 1",
+            "value": "Lap 1"
+          },
+          {
+            "selected": false,
+            "text": "Lap 2",
+            "value": "Lap 2"
+          },
+          {
+            "selected": false,
+            "text": "Lap 3",
+            "value": "Lap 3"
+          },
+          {
+            "selected": false,
+            "text": "Lap 4",
+            "value": "Lap 4"
+          },
+          {
+            "selected": false,
+            "text": "Lap 5",
+            "value": "Lap 5"
+          },
+          {
+            "selected": false,
+            "text": "Lap 6",
+            "value": "Lap 6"
+          },
+          {
+            "selected": false,
+            "text": "Lap 7",
+            "value": "Lap 7"
+          },
+          {
+            "selected": false,
+            "text": "Lap 8",
+            "value": "Lap 8"
+          },
+          {
+            "selected": false,
+            "text": "Lap 9",
+            "value": "Lap 9"
+          },
+          {
+            "selected": false,
+            "text": "Lap 10",
+            "value": "Lap 10"
+          },
+          {
+            "selected": false,
+            "text": "Lap 11",
+            "value": "Lap 11"
+          },
+          {
+            "selected": false,
+            "text": "Lap 12",
+            "value": "Lap 12"
+          },
+          {
+            "selected": false,
+            "text": "Lap 13",
+            "value": "Lap 13"
+          },
+          {
+            "selected": false,
+            "text": "Lap 14",
+            "value": "Lap 14"
+          },
+          {
+            "selected": false,
+            "text": "Lap 15",
+            "value": "Lap 15"
+          },
+          {
+            "selected": false,
+            "text": "Lap 16",
+            "value": "Lap 16"
+          },
+          {
+            "selected": false,
+            "text": "Lap 17",
+            "value": "Lap 17"
+          },
+          {
+            "selected": false,
+            "text": "Lap 18",
+            "value": "Lap 18"
+          },
+          {
+            "selected": false,
+            "text": "Lap 19",
+            "value": "Lap 19"
+          },
+          {
+            "selected": false,
+            "text": "Lap 20",
+            "value": "Lap 20"
+          },
+          {
+            "selected": false,
+            "text": "Lap 21",
+            "value": "Lap 21"
+          },
+          {
+            "selected": false,
+            "text": "Lap 22",
+            "value": "Lap 22"
+          },
+          {
+            "selected": false,
+            "text": "Lap 23",
+            "value": "Lap 23"
+          },
+          {
+            "selected": false,
+            "text": "Lap 24",
+            "value": "Lap 24"
+          },
+          {
+            "selected": false,
+            "text": "Lap 25",
+            "value": "Lap 25"
+          },
+          {
+            "selected": false,
+            "text": "Lap 26",
+            "value": "Lap 26"
+          },
+          {
+            "selected": false,
+            "text": "Lap 27",
+            "value": "Lap 27"
+          },
+          {
+            "selected": false,
+            "text": "Lap 28",
+            "value": "Lap 28"
+          },
+          {
+            "selected": false,
+            "text": "Lap 29",
+            "value": "Lap 29"
+          },
+          {
+            "selected": false,
+            "text": "Lap 30",
+            "value": "Lap 30"
+          }
+        ],
+        "query": "Lap 1,Lap 2,Lap 3,Lap 4,Lap 5,Lap 6,Lap 7,Lap 8,Lap 9,Lap 10,Lap 11,Lap 12,Lap 13,Lap 14,Lap 15,Lap 16,Lap 17,Lap 18,Lap 19,Lap 20,Lap 21,Lap 22,Lap 23,Lap 24,Lap 25,Lap 26,Lap 27,Lap 28,Lap 29,Lap 30",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "1970-01-01T00:00:00.000Z",
+    "to": "1970-01-01T00:01:40.000Z"
+  },
+  "timepicker": {
+    "hidden": false,
+    "refresh_intervals": []
+  },
+  "timezone": "utc",
+  "title": "ACC Lap Comparison (all laps)",
+  "uid": "acc-lap-comparison",
+  "version": 2,
+  "weekStart": ""
+}
