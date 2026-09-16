@@ -2,11 +2,17 @@
 """
 Prepare ACC telemetry CSV for Grafana's CSV data source.
 
-Produces two Grafana-ready files by default:
+For each dashboard, writes an **archive** (pinned to this extract) and a
+**stable** filename the dashboard points at by default (a regular copy, not
+a symlink — Grafana’s process user needs ACL-friendly readable files):
 
-1. ``telemetry_current.csv`` — full session vs video elapsed time (HTML mirror).
-2. ``telemetry_laps_by_position.csv`` — all laps aligned on track position so
-   Grafana can overlay every lap on one chart (no two-lap selector).
+Session dashboard (video elapsed time)
+  - archive: ``grafana_telemetry_<YYYYMMDD_HHMMSS>.csv``
+  - stable:  ``telemetry_current.csv``
+
+Lap comparison (track position overlay)
+  - archive: ``grafana_laps_by_position_<YYYYMMDD_HHMMSS>.csv``
+  - stable:  ``telemetry_laps_by_position.csv``
 
 Timestamps:
 
@@ -18,7 +24,7 @@ By default, files go to ``/var/lib/grafana/csv``. Override with ``-o`` or
 ``GRAFANA_CSV_DIR``.
 
 Example:
-    python scripts/prepare_grafana_csv.py data/output/telemetry_20250101_120000.csv
+    python scripts/prepare_grafana_csv.py data/output/telemetry_20260916_010941.csv
 """
 
 from __future__ import annotations
@@ -54,8 +60,8 @@ EPOCH = pd.Timestamp("1970-01-01T00:00:00Z")
 DEFAULT_OUTPUT_DIR = Path(
     os.environ.get("GRAFANA_CSV_DIR", "/var/lib/grafana/csv")
 )
-CURRENT_NAME = "telemetry_current.csv"
-LAPS_BY_POSITION_NAME = "telemetry_laps_by_position.csv"
+SESSION_STABLE_NAME = "telemetry_current.csv"
+LAPS_STABLE_NAME = "telemetry_laps_by_position.csv"
 
 NUMERIC_COLUMNS = (
     "throttle",
@@ -94,7 +100,6 @@ def _nearest_sample(targets: np.ndarray, x: np.ndarray, y: np.ndarray) -> np.nda
     """Sample y at targets using nearest x (keeps binary flags as 0/1)."""
     idx = np.searchsorted(x, targets, side="left")
     idx = np.clip(idx, 0, len(x) - 1)
-    # Prefer the closer of the left/right neighbours when both exist.
     left = np.clip(idx - 1, 0, len(x) - 1)
     use_left = (idx > 0) & (np.abs(x[left] - targets) <= np.abs(x[idx] - targets))
     chosen = np.where(use_left, left, idx)
@@ -110,7 +115,6 @@ def _resample_lap_by_position(
         return pd.DataFrame()
 
     valid = valid.sort_values("track_position")
-    # Drop non-monotonic blips that break interpolation.
     valid = valid[valid["track_position"].diff().fillna(0) >= 0]
     if len(valid) < 2:
         return pd.DataFrame()
@@ -134,7 +138,6 @@ def _resample_lap_by_position(
                 valid.loc[mask, "speed"].to_numpy(dtype=float),
             )
 
-    # Binary aids: nearest neighbour so values stay 0/1 (not fractional).
     for flag in ("tc_active", "abs_active"):
         if flag not in valid.columns:
             continue
@@ -201,9 +204,7 @@ def prepare_laps_by_position(
 
         resampled["lap_number"] = lap_int
         resampled["lap_label"] = f"Lap {lap_int}"
-        # Clock reading ≈ track position % (00:00:45 → 45%).
         resampled["timestamp"] = _format_timestamp(resampled["track_position"])
-        # Elapsed time within the lap (for optional delta maths later).
         t0 = float(resampled["time"].iloc[0])
         resampled["lap_elapsed"] = resampled["time"] - t0
         pieces.append(resampled)
@@ -239,6 +240,21 @@ def _write_csv(df: pd.DataFrame, path: Path) -> None:
     print(f"Wrote {path} ({len(df)} rows)")
 
 
+def _publish_pair(
+    df: pd.DataFrame,
+    archive_path: Path,
+    stable_path: Path,
+    *,
+    update_stable: bool,
+) -> None:
+    """Write archive CSV, then optionally copy it to the stable dashboard name."""
+    _write_csv(df, archive_path)
+    if update_stable:
+        shutil.copy2(archive_path, stable_path)
+        _grant_grafana_read(stable_path)
+        print(f"Updated {stable_path}")
+
+
 def main(argv: Optional[Iterable[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Convert ACC telemetry CSV for Grafana CSV data source"
@@ -246,7 +262,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     parser.add_argument(
         "csv_path",
         type=Path,
-        help="Path to telemetry_*.csv from main.py",
+        help="Path to telemetry_*.csv from main.py (under data/output/)",
     )
     parser.add_argument(
         "-o",
@@ -259,14 +275,22 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         ),
     )
     parser.add_argument(
+        "--no-stable",
+        action="store_true",
+        help=(
+            "Do not update stable dashboard pointers "
+            f"({SESSION_STABLE_NAME}, {LAPS_STABLE_NAME})"
+        ),
+    )
+    parser.add_argument(
         "--no-current",
         action="store_true",
-        help="Do not update telemetry_current.csv copy",
+        help="Alias for --no-stable (kept for older scripts)",
     )
     parser.add_argument(
         "--no-laps",
         action="store_true",
-        help="Skip the position-aligned multi-lap CSV",
+        help="Skip the position-aligned multi-lap CSV pair",
     )
     parser.add_argument(
         "--position-step",
@@ -280,12 +304,20 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         help="Include lap_number 0 in the position overlay (often an out-lap)",
     )
     args = parser.parse_args(list(argv) if argv is not None else None)
+    update_stable = not (args.no_stable or args.no_current)
 
     if not args.csv_path.is_file():
         print(f"Error: file not found: {args.csv_path}", file=sys.stderr)
         return 1
 
     df = pd.read_csv(args.csv_path)
+    stem = args.csv_path.stem
+    # data/output/telemetry_YYYYMMDD_HHMMSS.csv → YYYYMMDD_HHMMSS in archive names
+    archive_id = (
+        stem.removeprefix("telemetry_")
+        if stem.startswith("telemetry_")
+        else stem
+    )
 
     try:
         args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -302,24 +334,22 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         return 1
 
     session = prepare_session(df)
-    out_name = f"grafana_{args.csv_path.stem}.csv"
-    out_path = args.output_dir / out_name
+    session_archive = args.output_dir / f"grafana_telemetry_{archive_id}.csv"
     try:
-        _write_csv(session, out_path)
+        _publish_pair(
+            session,
+            session_archive,
+            args.output_dir / SESSION_STABLE_NAME,
+            update_stable=update_stable,
+        )
     except PermissionError:
         print(
-            f"Error: cannot write {out_path}\n"
+            f"Error: cannot write under {args.output_dir}\n"
             f"  sudo setfacl -m u:$USER:rwx {args.output_dir}\n"
             f"  sudo setfacl -d -m u:$USER:rwx {args.output_dir}",
             file=sys.stderr,
         )
         return 1
-
-    if not args.no_current:
-        current = args.output_dir / CURRENT_NAME
-        shutil.copy2(out_path, current)
-        _grant_grafana_read(current)
-        print(f"Updated {current}")
 
     if not args.no_laps:
         try:
@@ -331,8 +361,15 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         except ValueError as exc:
             print(f"Warning: skipped lap overlay CSV ({exc})", file=sys.stderr)
         else:
-            laps_path = args.output_dir / LAPS_BY_POSITION_NAME
-            _write_csv(laps_df, laps_path)
+            laps_archive = (
+                args.output_dir / f"grafana_laps_by_position_{archive_id}.csv"
+            )
+            _publish_pair(
+                laps_df,
+                laps_archive,
+                args.output_dir / LAPS_STABLE_NAME,
+                update_stable=update_stable,
+            )
             n_laps = laps_df["lap_number"].nunique()
             print(f"Lap overlay: {n_laps} laps at {args.position_step}% steps")
             if skipped:

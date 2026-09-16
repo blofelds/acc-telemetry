@@ -70,16 +70,26 @@ source venv/bin/activate
 python scripts/prepare_grafana_csv.py data/output/telemetry_YYYYMMDD_HHMMSS.csv
 ```
 
-Writes into `/var/lib/grafana/csv` by default:
+Writes into `/var/lib/grafana/csv` by default (regular copies, not
+symlinks). Each dashboard gets an **archive** (this extract) and a
+**stable** name the dashboard’s `CSV file` field points at by default:
 
-| File | Used by |
-|---|---|
-| `telemetry_current.csv` | Session dashboard |
-| `telemetry_laps_by_position.csv` | Lap comparison (all laps, position-aligned) |
-| `grafana_telemetry_….csv` | Archived session copy |
+| Role | Session dashboard | Lap comparison |
+|---|---|---|
+| Stable (default) | `telemetry_current.csv` | `telemetry_laps_by_position.csv` |
+| Archive | `grafana_telemetry_YYYYMMDD_HHMMSS.csv` | `grafana_laps_by_position_YYYYMMDD_HHMMSS.csv` |
+
+Example for `data/output/telemetry_20260916_010941.csv`:
+
+- `grafana_telemetry_20260916_010941.csv` + `telemetry_current.csv`
+- `grafana_laps_by_position_20260916_010941.csv` + `telemetry_laps_by_position.csv`
+
+Do not hand-copy raw `data/output/telemetry_*.csv` into
+`/var/lib/grafana/csv` — those lack Grafana timestamps.
 
 Incomplete laps (short span / few frames) and lap `0` are skipped for the
-overlay. Use `--include-lap-zero` if you want lap 0 included.
+overlay. Use `--include-lap-zero` if you want lap 0 included. Use
+`--no-stable` to write archives only.
 
 ### Session dashboard time range
 
