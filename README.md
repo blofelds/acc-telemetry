@@ -19,7 +19,7 @@ This tool analyzes ACC (and Assetto Corsa original) gameplay videos frame-by-fra
 - **Brake input** (0-100%)
 - **Steering input** (-1.0 to +1.0)
 - **Speed** (km/h; OCR on Competizione, glyph templates on Assetto Corsa original)
-- **Gear** (1-6 via OCR)
+- **Gear** (OCR on Competizione; glyph templates on Assetto Corsa original, including Neutral as `0`)
 - **Lap numbers** (OCR on Competizione; glyph templates on Assetto Corsa original)
 - **Track position** (0-100% via minimap analysis) 🆕
 
@@ -128,6 +128,8 @@ acc-telemetry/
 │   ├── video_processor.py           # Video frame extraction
 │   ├── telemetry_extractor.py       # Computer vision analysis
 │   ├── lap_detector.py              # Lap number / speed / gear detection
+│   ├── ac_speed_reader.py           # AC original speed/lap glyph matching
+│   ├── ac_gear_reader.py            # AC original gear glyph matching
 │   ├── position_tracker_v2.py       # Track position tracking (minimap) 🆕
 │   ├── template_matcher.py          # Digit template matching
 │   ├── interactive_visualizer.py    # Interactive Plotly visualizations
@@ -179,6 +181,7 @@ Currently configured via named profiles in `config/roi_config.yaml` (e.g. PS5 10
 - **PyYAML** - Configuration
 - **tesserocr / pytesseract** - OCR for Competizione lap/speed/gear and lap times
 - **AcSpeedReader** - Assetto Corsa original digit glyphs (speed and lap)
+- **AcGearReader** - Assetto Corsa original gear glyphs (1-6 and Neutral)
 - **FastAPI** - Optional web API (`src/web/`)
 
 ## 💡 How It Works

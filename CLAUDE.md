@@ -150,7 +150,7 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
 
 3. **[lap_detector.py](src/lap_detector.py)** - LapDetector class
    - Competizione: tesserocr for lap numbers, speed, and gear (~2ms); pytesseract for lap times / fallback
-   - Assetto Corsa original: `reader: assetto_corsa` glyph templates for speed and lap (same `0.png`–`9.png` set)
+   - Assetto Corsa original: `reader: assetto_corsa` glyph templates for speed and lap (same `0.png`–`9.png` set); gear uses its own larger digit pictures (`templates/gear_digits/`, Neutral → `0`)
    - Temporal smoothing: Majority voting across recent frames
 
 4. **[position_tracker_v2.py](src/position_tracker_v2.py)** - PositionTrackerV2 class
@@ -195,6 +195,7 @@ Place `.mp4` files in `videos/`. `main.py` interactively selects the video and a
 - **tesserocr**: Fast OCR for Competizione lap/speed/gear
 - **pytesseract**: Fallback OCR for lap times
 - **AcSpeedReader**: Assetto Corsa original block-font digit matching (speed and lap)
+- **AcGearReader**: Assetto Corsa original gear glyph matching (1-6 and Neutral)
 
 ## Architecture Overview
 
@@ -400,7 +401,7 @@ filled_width = np.median(filled_widths)
 
 ### OCR Strategy
 
-Competizione lap numbers, speed, and gear use **tesserocr** (fast C++ API), with pytesseract for lap times and as a fallback. Assetto Corsa original sets `reader: assetto_corsa` on speed and lap ROIs and matches glyphs from `templates/speed_digits/` instead — Tesseract misreads that block font.
+Competizione lap numbers, speed, and gear use **tesserocr** (fast C++ API), with pytesseract for lap times and as a fallback. Assetto Corsa original sets `reader: assetto_corsa` on speed, lap, and gear ROIs: speed and lap match glyphs from `templates/speed_digits/`; gear matches larger pictures from `templates/gear_digits/` (Neutral is `N.png` → `0`). Tesseract misreads that block font.
 
 #### Why tesserocr over pytesseract?
 - **Performance**: tesserocr is 25x faster (~2ms vs ~50ms per frame)
@@ -465,7 +466,7 @@ tesseract --version
 ```
 
 ### Template Matching (historical)
-Lap numbers previously used ACC `TemplateMatcher`. Competizione `extract_lap_number()` now runs **tesserocr** (pytesseract fallback). Assetto Corsa original uses `reader: assetto_corsa` glyph templates (`AcSpeedReader`) for lap and speed. See [docs/TEMPLATE_MATCHING_GUIDE.md](docs/TEMPLATE_MATCHING_GUIDE.md).
+Lap numbers previously used ACC `TemplateMatcher`. Competizione `extract_lap_number()` now runs **tesserocr** (pytesseract fallback). Assetto Corsa original uses `reader: assetto_corsa` glyph templates (`AcSpeedReader` for lap and speed; `AcGearReader` for gear). See [docs/TEMPLATE_MATCHING_GUIDE.md](docs/TEMPLATE_MATCHING_GUIDE.md).
 
 ### Kalman Filtering for Position Tracking
 Position tracking includes outlier rejection:
@@ -750,7 +751,7 @@ cap.release()
 - **Throttle/Brake detection** (HSV color masking): ~0.5ms per bar
 - **Steering detection** (contour finding): ~1ms
 - **Lap number OCR** (tesserocr): ~2ms per frame
-- **Speed/Gear OCR** (tesserocr): ~2ms per frame
+- **Speed/Gear** (tesserocr or AC glyphs): ~2ms per frame
 - **Lap time OCR** (pytesseract fallback): ~50ms per transition (only when lap changes)
 - **Position tracking**: ~1-2ms per frame
 - **Total per-frame processing**: ~5-10ms (can process 100-200 FPS)

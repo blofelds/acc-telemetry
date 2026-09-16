@@ -9,7 +9,7 @@ Added comprehensive performance tracking to `main.py` to monitor the execution t
 1. **Telemetry Extraction** - Throttle, brake, steering bar analysis
 2. **Lap Number Detection** - Competizione OCR (tesserocr / pytesseract) or AC glyph templates
 3. **Speed Extraction** - Competizione OCR or AC glyph templates
-4. **Gear Extraction** - OCR for current gear
+4. **Gear Extraction** - Competizione OCR or AC glyph templates
 5. **Lap Transition Detection** - Logic to detect lap changes
 6. **Lap Time Extraction** - OCR for lap times (only on transition frames)
 7. **Data Storage** - Appending data to Python list

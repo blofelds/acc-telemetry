@@ -178,7 +178,8 @@ Lap Numbers → Competizione: tesserocr / pytesseract
               Assetto Corsa: assetto_corsa glyph templates (leading digits)
 Speed       → Competizione: tesserocr / pytesseract
               Assetto Corsa: assetto_corsa glyph templates
-Gear        → tesserocr (primary) / pytesseract (fallback)
+Gear        → Competizione: tesserocr / pytesseract
+              Assetto Corsa: assetto_corsa glyph templates (large digit; Neutral→0)
 Lap Times   → pytesseract (only at transitions, ~1-2 times per minute)
 ```
 
@@ -190,7 +191,8 @@ Lap Times   → pytesseract (only at transitions, ~1-2 times per minute)
 | Lap numbers (AC) | glyph templates | Same block font as AC speed; OCR misreads it |
 | Speed (ACC) | tesserocr | Every frame; plain face |
 | Speed (AC) | glyph templates | Block font; shared `0.png`–`9.png` with lap |
-| Gear | tesserocr | Every frame, simple (1-6) |
+| Gear (ACC) | tesserocr | Every frame; plain face (1-6) |
+| Gear (AC) | glyph templates | Large block digit; own `templates/gear_digits/` (`N`→0) |
 | Lap times | pytesseract | Only at transitions, complex format (MM:SS.mmm) |
 
 **Historical note:** An older ACC `TemplateMatcher` path for lap numbers remains in the tree but is not used when `reader` is omitted (Competizione default).
@@ -571,7 +573,7 @@ twitch_720p:
    │   └─> If transition: extract lap time (pytesseract)
    ├─> PositionTracker extracts position (red dot + path following)
    ├─> TelemetryExtractor extracts throttle/brake/steering (HSV + pixel filtering)
-   ├─> LapDetector extracts speed/gear (OCR or AC glyphs for speed)
+   ├─> LapDetector extracts speed/gear (OCR, or AC glyphs when configured)
    └─> Data appended to list
 
 3. After all frames processed (`main.py`):
@@ -597,9 +599,9 @@ twitch_720p:
 Frame I/O:              ~0.5ms  (video decoding)
 ROI Extraction:         ~0.1ms  (array slicing)
 Telemetry Extraction:   ~2.0ms  (HSV + masking)
-Lap Number Detection:   ~2.0ms  (tesserocr OCR)
-Speed Detection:        ~2.0ms  (tesserocr OCR)
-Gear Detection:         ~2.0ms  (tesserocr OCR)
+Lap Number Detection:   ~2.0ms  (tesserocr OCR or AC glyphs)
+Speed Detection:        ~2.0ms  (tesserocr OCR or AC glyphs)
+Gear Detection:         ~2.0ms  (tesserocr OCR or AC glyphs)
 Position Tracking:      ~0.5ms  (red dot + path following)
 Data Storage:           ~0.1ms  (list append)
 ─────────────────────────────────────────
@@ -613,7 +615,7 @@ Total per frame:        ~9.2ms  (≈110 FPS processing speed)
 - **Total: ~8-9 minutes**
 
 **Bottlenecks:**
-1. OCR operations (speed/gear/lap) = ~6ms (~65% of time)
+1. Digit reads (OCR or AC glyphs for speed/gear/lap) = ~6ms (~65% of time)
 2. Telemetry extraction (HSV color) = ~2ms (~22% of time)
 3. Everything else = ~1.2ms (~13% of time)
 

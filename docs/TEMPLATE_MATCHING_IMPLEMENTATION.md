@@ -1,6 +1,6 @@
 # Template Matching Implementation for Lap Number Detection
 
-> **Historical document:** Describes the template-matching phase for ACC lap numbers. Competizione `LapDetector.extract_lap_number()` now uses **tesserocr** (pytesseract fallback). Assetto Corsa original uses glyph templates via `reader: assetto_corsa`. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer [USER_GUIDE.md](USER_GUIDE.md) and [FEATURES.md](FEATURES.md).
+> **Historical document:** Describes the template-matching phase for ACC lap numbers. Competizione `LapDetector.extract_lap_number()` now uses **tesserocr** (pytesseract fallback). Assetto Corsa original uses glyph templates via `reader: assetto_corsa` for speed, lap, and gear. Some referenced standalone scripts (`compare_laps.py`, `compare_laps_by_position.py`, `generate_detailed_analysis.py`, various `test_*.py` / `debug_*.py` helpers) are **no longer in this repository**. Prefer [USER_GUIDE.md](USER_GUIDE.md) and [FEATURES.md](FEATURES.md).
 
 
 ## Overview

@@ -1,6 +1,6 @@
 # Template Matching Guide
 
-> **Historical document:** Describes an intermediate ACC lap-number template path. Competizione `extract_lap_number()` uses **tesserocr** (pytesseract fallback). Assetto Corsa original uses `reader: assetto_corsa` glyph templates shared with speed (`templates/speed_digits/`). Prefer [USER_GUIDE.md](USER_GUIDE.md) and [FEATURES.md](FEATURES.md).
+> **Historical document:** Describes an intermediate ACC lap-number template path. Competizione `extract_lap_number()` uses **tesserocr** (pytesseract fallback). Assetto Corsa original uses `reader: assetto_corsa` glyph templates for speed and lap (`templates/speed_digits/`) and gear (`templates/gear_digits/`). Prefer [USER_GUIDE.md](USER_GUIDE.md) and [FEATURES.md](FEATURES.md).
 
 ## Summary: OCR Replacement Complete!
 
@@ -212,7 +212,11 @@ lower_white = np.array([0, 0, 170])  # Lower from 180
 upper_white = np.array([180, 60, 255])  # Increase saturation tolerance
 ```
 
-## Future: Speed & Gear Detection
+## Future: Speed & Gear Detection (historical)
+
+> **Note:** Assetto Corsa original speed and gear already use glyph templates
+> (`AcSpeedReader` / `AcGearReader`). Competizione speed and gear stay on
+> tesserocr. The sketch below was an earlier ACC plan and is not the current path.
 
 The same template matching approach will work for speed and gear:
 
@@ -304,7 +308,7 @@ gear = gear_matcher.recognize_digit(gear_roi)
 
 ---
 
-**Status**: Template matching is now the default for lap numbers. OCR is only used for lap times at transitions. Future speed/gear detection will also use templates!
+**Status (historical):** This guide described template matching as the ACC lap default. Competizione lap numbers now use tesserocr; Assetto Corsa original uses glyph templates for speed, lap, and gear.
 
 
 
