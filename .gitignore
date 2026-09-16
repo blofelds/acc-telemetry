@@ -22,6 +22,8 @@ input_video.mp4
 *.mov
 data/output/*
 !data/output/.gitkeep
+data/grafana/*
+!data/grafana/.gitkeep
 
 # OS
 .DS_Store

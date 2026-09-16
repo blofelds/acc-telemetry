@@ -1,0 +1,17 @@
+# ACC Telemetry CSV — local files for Grafana
+#
+# Point at Grafana's own CSV directory so the server can read files without
+# opening up the user's home directory. Grant your login write access via ACL
+# (see grafana/README.md); do not chmod a+rx on $HOME.
+apiVersion: 1
+
+datasources:
+  - name: ACC Telemetry CSV
+    uid: acc-telemetry-csv
+    type: marcusolsson-csv-datasource
+    access: proxy
+    url: /var/lib/grafana/csv
+    isDefault: false
+    editable: true
+    jsonData:
+      storage: local
