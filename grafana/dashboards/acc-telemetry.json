@@ -1,0 +1,686 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "ACC console telemetry \u2014 mirrors the interactive HTML from main.py (throttle, brake, steering, speed, gear, TC, ABS).",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#00FF00",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "Throttle (%)",
+            "axisPlacement": "left",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "throttle",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Throttle Input",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#FF0000",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "Brake (%)",
+            "fillOpacity": 25,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "brake",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Brake Input",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#1E90FF",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "Steering",
+            "fillOpacity": 0,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "max": 1,
+          "min": -1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "rgba(128,128,128,0.5)",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "min",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "steering",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Steering Input (\u22121 left \u2026 +1 right)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#FF8C00",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "Speed (km/h)",
+            "fillOpacity": 0,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "speed",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Speed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#9B59B6",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "Gear",
+            "fillOpacity": 0,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "max": 7,
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "gear",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Gear",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#FFA500",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "TC",
+            "fillOpacity": 30,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "max": 1.2,
+          "min": -0.1,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "tc_active",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Traction Control (TC)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#FF8C00",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "ABS",
+            "fillOpacity": 30,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "max": 1.2,
+          "min": -0.1,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "abs_active",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "ABS",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#34495E",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisLabel": "Lap",
+            "fillOpacity": 0,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "${datasource}"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": true,
+          "path": "${csv_file}",
+          "refId": "A",
+          "schema": [
+            {
+              "name": "timestamp",
+              "type": "time"
+            },
+            {
+              "name": "lap_number",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        }
+      ],
+      "title": "Lap Number",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [
+    "acc",
+    "telemetry",
+    "sim-racing"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data source",
+        "name": "datasource",
+        "options": [],
+        "query": "marcusolsson-csv-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "telemetry_current.csv",
+          "value": "telemetry_current.csv"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "CSV file",
+        "name": "csv_file",
+        "options": [
+          {
+            "selected": true,
+            "text": "telemetry_current.csv",
+            "value": "telemetry_current.csv"
+          }
+        ],
+        "query": "telemetry_current.csv",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "1970-01-01T00:00:00.000Z",
+    "to": "1970-01-01T00:15:00.000Z"
+  },
+  "timepicker": {
+    "hidden": false,
+    "refresh_intervals": []
+  },
+  "timezone": "utc",
+  "title": "ACC Telemetry Analysis",
+  "uid": "acc-telemetry-analysis",
+  "version": 1,
+  "weekStart": ""
+}

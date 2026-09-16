@@ -1,0 +1,22 @@
+# Auto-load dashboards from a path Grafana can read without opening $HOME.
+#
+# One-time (after cloning / updating the dashboard JSON):
+#   sudo mkdir -p /var/lib/grafana/dashboards/acc-telemetry
+#   sudo cp /home/user1/git/acc-telemetry/grafana/dashboards/*.json \
+#     /var/lib/grafana/dashboards/acc-telemetry/
+#   sudo chown -R nobody:nogroup /var/lib/grafana/dashboards/acc-telemetry
+#
+# Or skip provisioning and import grafana/dashboards/acc-telemetry.json via the UI.
+apiVersion: 1
+
+providers:
+  - name: ACC Telemetry
+    orgId: 1
+    folder: ACC Telemetry
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/acc-telemetry
+      foldersFromFilesStructure: false
