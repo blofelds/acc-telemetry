@@ -1,0 +1,38 @@
+---
+description: Provide a pull request title and description. Leave merge commit fields to GitHub.
+alwaysApply: true
+---
+
+# Pull requests
+
+When opening a pull request, provide only the pull request title and description.
+
+Do not pre-populate the merge commit message or the extended description. Leave those fields empty so GitHub uses its default.
+
+Do not put the pull request title or description into a merge or squash commit. Do not pass a commit title or commit message when merging.
+
+Still provide a title and description for the pull request itself.
+
+## How to create the PR (required)
+
+Create the PR with the GitHub CLI so **both** title and body are stored on
+GitHub. Do **not** rely on the compare-page / “open in GitHub UI” flow that
+only carries the title into the browser and leaves the body in chat.
+
+```bash
+gh pr create --title "type(scope): imperative description" --body "$(cat <<'EOF'
+## Summary
+- ...
+
+## Test plan
+- [ ] ...
+
+EOF
+)"
+```
+
+- Pass the body via a HEREDOC (`<<'EOF'`) so markdown and blank lines survive.
+- Prefer `gh pr create` (API create) over `gh pr create --web` or a
+  `compare/...` URL unless `gh` cannot authenticate.
+- If `gh` returns 403 on create, the token needs `pull_requests: write`; ask
+  the user to fix auth rather than pasting a body-only message into chat.
