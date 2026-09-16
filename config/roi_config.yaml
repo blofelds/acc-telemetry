@@ -1,6 +1,6 @@
  # ROI configurations for different video sources
 
-my_ps5_1080p:
+competizione_1080p:
   # ROI coordinates for 1920x1080 video
   # Horizontal throttle/brake bars in bottom-right corner
 
@@ -32,7 +32,6 @@ my_ps5_1080p:
     height: 10
   
   # Lap number - red flag with white number in top-left corner
-    # Need to redo this With double digit laps
     # Quite wide
   lap_number:
     x: 277
@@ -43,7 +42,7 @@ my_ps5_1080p:
   lap_number_training:
     x: 277
     y: 114
-    width: 23
+    width: 48
     height: 38
   
   # Last lap time - "LAST" lap time shown after completing a lap
