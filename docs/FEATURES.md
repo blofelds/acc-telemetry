@@ -84,7 +84,7 @@ The lap detection feature went through several iterations:
 
 **Current approach:**
 - **Competizione (ACC):** tesserocr on every frame for lap/speed/gear (pytesseract fallback). `TemplateMatcher` is leftover and is not on that path.
-- **Assetto Corsa original:** `reader: assetto_corsa` on speed and lap ROIs; shared digit pictures in `templates/speed_digits/ac_1080p/`. OCR is the wrong reader for that font.
+- **Assetto Corsa original:** `reader: assetto_corsa` on speed, lap, and gear ROIs. Speed and lap share `templates/speed_digits/ac_1080p/`; gear uses `templates/gear_digits/ac_1080p/` (Neutral is `N.png` → `0`). OCR is the wrong reader for that font.
 
 **Development Journey - Temporal Smoothing:**
 
@@ -278,9 +278,9 @@ Position tracking extracts the car's location around the track (0-100%) from the
 
 **Assetto Corsa original:** speed and lap use the same `reader: assetto_corsa` glyph templates. Gear uses its own larger digit pictures (`templates/gear_digits/`); Neutral is `N.png` and is stored as `0`. OCR is the wrong reader for that font.
 
-Uses OCR (or AC templates for speed) to read numeric values from HUD:
+Uses OCR (or AC templates for speed/gear) to read numeric values from HUD:
 - **Speed**: digits beside the pedal cluster (AC) or inside the rev meter (ACC)
-- **Gear**: Single digit (1-6) near the rev / speed readout
+- **Gear**: Competizione 1-6; Assetto Corsa original also has Neutral (`0` in the CSV)
 
 **Why OCR for Competizione speed/gear:**
 - Speed changes constantly (0-300+ km/h)

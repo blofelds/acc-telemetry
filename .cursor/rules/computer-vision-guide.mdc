@@ -95,7 +95,7 @@ filled_width = np.median(filled_widths)
 
 ## OCR for Lap Detection (Competizione)
 
-Competizione lap numbers and lap times use **tesserocr** (fast C++ API). Assetto Corsa original lap digits use `reader: assetto_corsa` glyph templates instead — see [roi-configuration.mdc](mdc:.cursor/rules/roi-configuration.mdc).
+Competizione lap numbers and lap times use **tesserocr** (fast C++ API). Assetto Corsa original speed, lap, and gear digits use `reader: assetto_corsa` glyph templates instead — see [roi-configuration.mdc](mdc:.cursor/rules/roi-configuration.mdc).
 
 ### Why tesserocr over pytesseract?
 - **Performance**: tesserocr is 25x faster (~2ms vs ~50ms per frame)

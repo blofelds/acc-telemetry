@@ -34,7 +34,7 @@ Optional web API: [run_server.py](mdc:run_server.py) → [src/web/](mdc:src/web/
 
 3. **[lap_detector.py](mdc:src/lap_detector.py)** - LapDetector class
    - Competizione: tesserocr (pytesseract fallback) for lap numbers, speed, gear, lap times
-   - Assetto Corsa original: `reader: assetto_corsa` glyph templates for speed and lap
+   - Assetto Corsa original: `reader: assetto_corsa` glyph templates for speed and lap; gear uses `templates/gear_digits/`
 
 4. **[position_tracker_v2.py](mdc:src/position_tracker_v2.py)** - PositionTrackerV2 class
    - Minimap-based track position (0-100%)

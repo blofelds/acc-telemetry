@@ -245,7 +245,7 @@ Typical performance on a modern CPU:
 - 10-minute video processes in ~1-2 minutes
 
 **OCR / digit Performance:**
-- Assetto Corsa speed/lap glyph templates: ~1–2ms per frame
+- Assetto Corsa speed/lap/gear glyph templates: ~1–2ms per frame
 - tesserocr (Competizione lap/speed/gear): ~2ms per frame
 - pytesseract fallback: ~50ms per frame (if tesserocr unavailable)
 
